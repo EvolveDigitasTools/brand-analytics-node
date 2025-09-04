@@ -1,11 +1,10 @@
 import express from "express";
 import multer from "multer";
 import xlsx from "xlsx";
+import mysql from "mysql2/promise";
 import cors from "cors";
 import dotenv from "dotenv";
 import fs from "fs";
-import db from "./db.js";
-import comboSkuRutes from "./routes/comboSkuRoutes.js";
 
 dotenv.config();
 
@@ -13,8 +12,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ===== Combo SKU MAPPING ======
-app.use("/api/combo-sku", comboSkuRutes);
+// Database config
+const db = await mysql.createPool({
+  host: process.env.DATABASE_HOST,
+  user: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
+  database: process.env.DATABASE_NAME,
+  port: process.env.DATABASE_PORT,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+});
 
 // Multer config
 const upload = multer({ dest: "uploads/" });
@@ -26,8 +34,6 @@ const PORT = process.env.PORT || 4000;
 app.get("/", (req, res) => {
   res.send("✅ Backend is running!");
 });
-
-// ====================== MARKETPLACES INVENTORY UPDATE ======================
 
 // Meesho Upload route - Phase 2 (Allowed reasons = Shipped, Delivery etc.)
 // app.post("/upload", upload.single("file"), async (req, res) => {
@@ -910,122 +916,6 @@ app.post("/upload-flipkart", upload.single("file"), async (req, res) => {
     res.status(500).json({ error: "Failed to process Flipkart file" });
   }
 });
-
-
-
-
-// ====================== INVENTORY ROUTES ======================
-
-// 1. All inventory - Done
-app.get("/inventory", async (req, res) => {
-  try {
-    const [rows] = await db.query(`
-      SELECT 
-        s.skuCode, 
-        s.name AS productTitle,
-        i.quantity,
-        i.expiryDate
-      FROM sku s
-      JOIN inventory i ON s.id = i.skuId
-    `);
-
-    const inventory = rows.map(row => ({
-      skuCode: row.skuCode,
-      productTitle: row.productTitle,
-      currentInventory: [
-        { count: row.quantity, expiry: row.expiryDate }
-      ],
-      salesLast15Days: 0
-    }));
-
-    res.json({ success: true, data: { inventory } });
-  } catch (err) {
-    console.error("Error fetching all inventory:", err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
-
-// 2. Vendor-specific inventory - Done
-app.get("/inventory/vendor/:vendorCode", async (req, res) => {
-  const { vendorCode } = req.params;
-
-  try {
-    const [rows] = await db.query(`
-      SELECT 
-        s.skuCode, 
-        s.name AS productTitle,
-        i.quantity,
-        i.expiryDate
-      FROM sku s
-      JOIN inventory i ON s.id = i.skuId
-      JOIN vendor v ON s.vendorId = v.id
-      WHERE v.vendorCode = ?
-    `, [vendorCode]);
-
-    const inventory = rows.map(row => ({
-      skuCode: row.skuCode,
-      productTitle: row.productTitle,
-      currentInventory: [
-        { count: row.quantity, expiry: row.expiryDate }
-      ],
-      salesLast15Days: 0
-    }));
-
-    res.json({ success: true, data: { inventory } });
-  } catch (err) {
-    console.error("Error fetching vendor inventory:", err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
-
-
-
-// 3. Bulk update inventory (Excel upload)
-app.post("/inventory/update", (req, res) => {
-  const { updates, updateTimestamp } = req.body;
-
-  if (!updates || !Array.isArray(updates)) {
-    return res.status(400).json({ success: false, message: "Invalid payload" });
-  }
-
-  const updatePromises = updates.map(u => {
-    return new Promise((resolve, reject) => {
-      const query = `
-        UPDATE inventory 
-        SET quantity = ?, expiryDate = ?, updatedAt = ? 
-        WHERE skuCode = ?
-      `;
-      db.query(query, [u.updatedInventory, u.expiryDate, updateTimestamp, u.skuCode], (err, result) => {
-        if (err) return reject(err);
-        resolve(result);
-      });
-    });
-  });
-
-  Promise.all(updatePromises)
-    .then(() => res.json({ success: true, message: "Inventory updated successfully" }))
-    .catch(err => {
-      console.error("Error updating inventory:", err);
-      res.status(500).json({ success: false, message: "Update failed" });
-    });
-});
-
-
-// 3. Get all vendors
-app.get("/vendor/all", async (req, res) => {
-  try {
-    const query = `SELECT vendorCode, brandName FROM vendor`;
-
-    // Use await, no callback
-    const [results] = await db.query(query);
-
-    res.json(results); // frontend expects array
-  } catch (err) {
-    console.error("Error fetching vendors:", err);
-    res.status(500).json({ success: false, message: "DB error" });
-  }
-});
-
 
 app.listen(PORT, () => {
   console.log(`Node backend running on port ${PORT}`);
