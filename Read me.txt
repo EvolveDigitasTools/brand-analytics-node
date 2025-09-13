@@ -1,0 +1,4 @@
+All Marketplaces Daily Orders Update and SKU Mapping
+
+Backend hosted on Render (hemantk@evolvedigitas.com)
+frontend hosted on Hostinger public html / grn

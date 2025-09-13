@@ -5,7 +5,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import fs from "fs";
 import db from "./db.js";
-import comboSkuRutes from "./routes/comboSkuRoutes.js";
+import cron from "node-cron";
+import comboSkuRutes from "./routes/comboSkuRoutes.js"; //Combo Routes
+import { fetchAndStoreAmazonOrders } from "./amazon/amazonOrders.js";
 
 dotenv.config();
 
@@ -13,7 +15,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ===== Combo SKU MAPPING ======
+// ===== Combo SKU Mapping Route ======
 app.use("/api/combo-sku", comboSkuRutes);
 
 // Multer config
@@ -29,359 +31,7 @@ app.get("/", (req, res) => {
 
 // ====================== MARKETPLACES INVENTORY UPDATE ======================
 
-// Meesho Upload route - Phase 2 (Allowed reasons = Shipped, Delivery etc.)
-// app.post("/upload", upload.single("file"), async (req, res) => {
-//   if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-
-//   const startTime = Date.now();
-
-//   let results = [];
-
-//   // Allowed status values
-//     const allowedReasons = ["SHIPPED", "DELIVERED", "READY_TO_SHIP", "DOOR_STEP_EXCHANGED"];
-
-//   try {
-//     const workbook = xlsx.readFile(req.file.path);
-//     const sheetName = workbook.SheetNames[0];
-//     const sheet = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-//     for (const row of sheet) {
-//       const skuCode = row["SKU"];
-//       const qty = parseInt(row["Quantity"]);
-//       const reason = row["Reason for Credit Entry"];
-
-//       if (!skuCode || isNaN(qty)) {
-//         results.push({ skuCode, error: "Invalid SKU/Quantity" });
-//         continue;
-//       }
-
-//       // Skip rows not in allowed reasons
-//       if (!allowedReasons.includes(reason)) continue;
-
-//       try {
-//         const [skuRows] = await db.query(
-//           "SELECT id FROM sku WHERE skuCode = ?",
-//           [skuCode]
-//         );
-
-//         if (skuRows.length === 0) {
-//           results.push({ skuCode, error: "SKU not found" });
-//           continue;
-//         }
-
-//         const skuID = skuRows[0].id;
-
-//         const [invRows] = await db.query(
-//           "SELECT id, quantity FROM inventory WHERE skuID = ? LIMIT 1",
-//           [skuID]
-//         );
-
-//         if (invRows.length === 0) {
-//           results.push({ skuCode, error: "No inventory record found" });
-//           continue;
-//         }
-
-//         const inventory = invRows[0];
-//         let newQty = Math.max(0, inventory.quantity - qty);
-
-//         await db.query(
-//           "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
-//           [newQty, inventory.id]
-//         );
-
-//         results.push({
-//           skuCode,
-//           oldQty: inventory.quantity,
-//           deducted: qty,
-//           newQty,
-//           reason,
-//         });
-
-//       } catch (err) {
-//         results.push({ skuCode, error: err.message });
-//       }
-//     }
-
-//     // delete uploaded file
-//     fs.unlink(req.file.path, (err) => {
-//       if (err) console.error("File cleanup failed:", err);
-//     });
-
-//     res.json({
-//       message: "Inventory updated",
-//       totalProcessed: results.length,
-//       totalErrors: results.filter(r => r.error).length,
-//       executionTime: (Date.now() - startTime) + "ms",
-//       results,
-//     });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ error: "Something went wrong" });
-//   }
-// });
-
-// Meesho Upload route - Phase 3 (PK1-9 decrease as 1-9)
-// app.post("/upload", upload.single("file"), async (req, res) => {
-//   if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-
-//   const startTime = Date.now();
-
-//   let results = [];
-
-//   // Allowed status values
-//     const allowedReasons = ["SHIPPED", "DELIVERED", "READY_TO_SHIP", "DOOR_STEP_EXCHANGED",];
-
-//   try {
-//     const workbook = xlsx.readFile(req.file.path);
-//     const sheetName = workbook.SheetNames[0];
-//     const sheet = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-//     for (const row of sheet) {
-//         const originalSku = row["SKU"];   // keep original for reporting
-//         let skuCode = String(originalSku).trim(); // force string
-//         const qty = parseInt(row["Quantity"]);
-//         const reason = row["Reason for Credit Entry"];
-
-//         if (!skuCode || isNaN(qty)) {
-//             results.push({ skuCode: originalSku, error: "Invalid SKU/Quantity" });
-//             continue;
-//         }
-
-//         // Skip rows not in allowed reasons
-//         if (!allowedReasons.includes(reason)) continue;
-
-//         try {
-//             // Default multiplier = 1
-//             let multiplier = 1;
-
-//             // Check if SKU has -PKx at the end
-//             const pkMatch = skuCode.match(/-PK(\d+)$/i);
-//             if (pkMatch) {
-//             multiplier = parseInt(pkMatch[1]);
-//             skuCode = skuCode.replace(/-PK\d+$/i, ""); // strip suffix for lookup
-//             }
-
-//             // Effective deduction
-//             const deductQty = qty * multiplier;
-
-//             const [skuRows] = await db.query(
-//             "SELECT id FROM sku WHERE skuCode = ?",
-//             [skuCode]
-//             );
-
-//             if (skuRows.length === 0) {
-//             results.push({ skuCode: originalSku, error: "SKU not found" });
-//             continue;
-//             }
-
-//             const skuID = skuRows[0].id;
-
-//             const [invRows] = await db.query(
-//             "SELECT id, quantity FROM inventory WHERE skuID = ? LIMIT 1",
-//             [skuID]
-//             );
-
-//             if (invRows.length === 0) {
-//             results.push({ skuCode: originalSku, error: "No inventory record found" });
-//             continue;
-//             }
-
-//             const inventory = invRows[0];
-//             let newQty = Math.max(0, inventory.quantity - deductQty);
-
-//             await db.query(
-//             "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
-//             [newQty, inventory.id]
-//             );
-
-//             results.push({
-//             originalSku: String(originalSku), // always log as string
-//             baseSku: skuCode,
-//             oldQty: inventory.quantity,
-//             deducted: deductQty,
-//             newQty,
-//             reason,
-//             });
-
-//         } catch (err) {
-//             results.push({ skuCode: originalSku, error: err.message });
-//         }
-//         }
-
-
-
-
-//     // delete uploaded file
-//     fs.unlink(req.file.path, (err) => {
-//       if (err) console.error("File cleanup failed:", err);
-//     });
-
-//     res.json({
-//       message: "Inventory updated",
-//       totalProcessed: results.length,
-//       totalErrors: results.filter(r => r.error).length,
-//       executionTime: (Date.now() - startTime) + "ms",
-//       results,
-//     });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ error: "Something went wrong" });
-//   }
-// });
-
-// Meesho Upload route - Phase 4 (Combo SKUs Mapping)
-// app.post("/upload", upload.single("file"), async (req, res) => {
-//   if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-
-//   const startTime = Date.now();
-//   let results = [];
-
-//   // Allowed status values
-//   const allowedReasons = ["SHIPPED", "DELIVERED", "READY_TO_SHIP", "DOOR_STEP_EXCHANGED"];
-
-//   try {
-//     const workbook = xlsx.readFile(req.file.path);
-//     const sheetName = workbook.SheetNames[0];
-//     const sheet = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-//     for (const row of sheet) {
-//       const originalSku = row["SKU"];   // keep original for reporting
-//       let skuCode = String(originalSku).trim(); // force string
-//       const qty = parseInt(row["Quantity"]);
-//       const reason = row["Reason for Credit Entry"];
-
-//       if (!skuCode || isNaN(qty)) {
-//         results.push({ skuCode: originalSku, error: "Invalid SKU/Quantity" });
-//         continue;
-//       }
-
-//       // Skip rows not in allowed reasons
-//       if (!allowedReasons.includes(reason)) continue;
-
-//       try {
-//         // Default multiplier = 1
-//         let multiplier = 1;
-
-//         // Check if SKU has -PKx at the end
-//         const pkMatch = skuCode.match(/-PK(\d+)$/i);
-//         if (pkMatch) {
-//           multiplier = parseInt(pkMatch[1]);
-//           skuCode = skuCode.replace(/-PK\d+$/i, ""); // strip suffix for lookup
-//         }
-
-//         // Effective deduction
-//         const deductQty = qty * multiplier;
-
-//         // 🔹 1) Check if SKU is a normal SKU in sku table
-//         const [skuRows] = await db.query(
-//           "SELECT id FROM sku WHERE skuCode = ?",
-//           [skuCode]
-//         );
-
-//         if (skuRows.length > 0) {
-//           // ✅ Normal SKU update (your existing logic)
-//           const skuID = skuRows[0].id;
-//           const [invRows] = await db.query(
-//             "SELECT id, quantity FROM inventory WHERE skuID = ? LIMIT 1",
-//             [skuID]
-//           );
-
-//           if (invRows.length === 0) {
-//             results.push({ skuCode: originalSku, error: "No inventory record found" });
-//             continue;
-//           }
-
-//           const inventory = invRows[0];
-//           let newQty = Math.max(0, inventory.quantity - deductQty);
-
-//           await db.query(
-//             "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
-//             [newQty, inventory.id]
-//           );
-
-//           results.push({
-//             originalSku: String(originalSku),
-//             baseSku: skuCode,
-//             oldQty: inventory.quantity,
-//             deducted: deductQty,
-//             newQty,
-//             reason,
-//           });
-
-//         } else {
-//           // 🔹 2) If not found in sku table, maybe it's a combo SKU
-//           const [comboRows] = await db.query(
-//             "SELECT id FROM combo_sku WHERE combo_name = ?",
-//             [skuCode]
-//           );
-
-//           if (comboRows.length === 0) {
-//             results.push({ skuCode: originalSku, error: "SKU not found (normal or combo)" });
-//             continue;
-//           }
-
-//           const comboID = comboRows[0].id;
-
-//           // Get child SKUs of combo
-//           const [childRows] = await db.query(
-//             `SELECT s.id as skuID, s.skuCode, i.id as inventoryID, i.quantity as stock, csi.quantity as comboQty
-//              FROM combo_sku_items csi
-//              JOIN sku s ON csi.sku_id = s.id
-//              JOIN inventory i ON i.skuID = s.id
-//              WHERE csi.combo_sku_id = ?`,
-//             [comboID]
-//           );
-
-//           if (childRows.length === 0) {
-//             results.push({ skuCode: originalSku, error: "No child SKUs found for combo" });
-//             continue;
-//           }
-
-//           for (const child of childRows) {
-//             const deductChildQty = deductQty * child.comboQty; // multiply by combo requirement
-//             const newQty = Math.max(0, child.stock - deductChildQty);
-
-//             await db.query(
-//               "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
-//               [newQty, child.inventoryID]
-//             );
-
-//             results.push({
-//               originalSku: String(originalSku),
-//               comboSku: skuCode,
-//               childSku: child.skuCode,
-//               oldQty: child.stock,
-//               deducted: deductChildQty,
-//               newQty,
-//               reason,
-//             });
-//           }
-//         }
-
-//       } catch (err) {
-//         results.push({ skuCode: originalSku, error: err.message });
-//       }
-//     }
-
-//     // delete uploaded file
-//     fs.unlink(req.file.path, (err) => {
-//       if (err) console.error("File cleanup failed:", err);
-//     });
-
-//     res.json({
-//       message: "Inventory updated",
-//       totalProcessed: results.length,
-//       totalErrors: results.filter(r => r.error).length,
-//       executionTime: (Date.now() - startTime) + "ms",
-//       results,
-//     });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ error: "Something went wrong" });
-//   }
-// });
-
-// Meesho Upload route - Phase 5 - Working Done (Combo SKUs)
+// Meesho Sheet Upload
 app.post("/upload", upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
@@ -538,76 +188,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 });
 
 
-// Amazon Sheet Upload - Phase 1
-// app.post("/upload-amazon", upload.single("file"), async (req, res) => {
-//   console.log("Uploaded Amazon file:", req.file);
-//   try {
-//     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-
-//     // Read Excel file
-//     const workbook = xlsx.readFile(req.file.path);
-//     const sheetName = workbook.SheetNames[0];
-//     const sheet = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-//     let results = [];
-
-//     for (const row of sheet) {
-//       const skuCode = row["sku"]; // Amazon column
-//       const qty = parseInt(row["quantity"]); // Amazon column
-
-//       if (!skuCode || isNaN(qty)) continue; // Skip invalid rows
-
-//       // 1. Find SKU ID
-//       const [skuRows] = await db.query(
-//         "SELECT id FROM sku WHERE skuCode = ?",
-//         [skuCode]
-//       );
-
-//       if (skuRows.length === 0) {
-//         results.push({ skuCode, error: "SKU not found" });
-//         continue;
-//       }
-
-//       const skuID = skuRows[0].id;
-
-//       // 2. Find inventory for this SKU
-//       const [invRows] = await db.query(
-//         "SELECT id, quantity FROM inventory WHERE skuID = ? LIMIT 1",
-//         [skuID]
-//       );
-
-//       if (invRows.length === 0) {
-//         results.push({ skuCode, error: "No inventory record found" });
-//         continue;
-//       }
-
-//       const inventory = invRows[0];
-//       let newQty = inventory.quantity - qty;
-//       if (newQty < 0) newQty = 0;
-
-//       // 3. Update inventory
-//       await db.query(
-//         "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
-//         [newQty, inventory.id]
-//       );
-
-//       results.push({
-//         skuCode,
-//         oldQty: inventory.quantity,
-//         deducted: qty,
-//         newQty,
-//       });
-//     }
-
-//     res.json({ message: "Amazon inventory updated", results });
-
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ error: "Something went wrong" });
-//   }
-// });
-
-// Amazon Sheet Upload - Phase 2 (Same as Meesho last phase)
+// Amazon Sheet Upload
 app.post("/upload-amazon", upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
@@ -758,8 +339,7 @@ app.post("/upload-amazon", upload.single("file"), async (req, res) => {
   }
 });
 
-
-// Flipkart Sheet Upload - Phase 1 Working - Done (same as Amazon last phase)
+// Flipkart Sheet Upload
 // Clean Flipkart SKU (remove extra quotes and SKU: prefix)
 function cleanFlipkartSku(rawSku) {
   if (!rawSku) return null;
@@ -911,121 +491,31 @@ app.post("/upload-flipkart", upload.single("file"), async (req, res) => {
   }
 });
 
-
-
-
-// ====================== INVENTORY ROUTES ======================
-
-// 1. All inventory - Done
-app.get("/inventory", async (req, res) => {
+// ====================== AMAZON REAL TIME ORDER STATUS ======================
+// Test route to trigger manual sync
+app.get("/api/fetch-amazon-orders", async (req, res) => {
   try {
-    const [rows] = await db.query(`
-      SELECT 
-        s.skuCode, 
-        s.name AS productTitle,
-        i.quantity,
-        i.expiryDate
-      FROM sku s
-      JOIN inventory i ON s.id = i.skuId
-    `);
-
-    const inventory = rows.map(row => ({
-      skuCode: row.skuCode,
-      productTitle: row.productTitle,
-      currentInventory: [
-        { count: row.quantity, expiry: row.expiryDate }
-      ],
-      salesLast15Days: 0
-    }));
-
-    res.json({ success: true, data: { inventory } });
-  } catch (err) {
-    console.error("Error fetching all inventory:", err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
-
-// 2. Vendor-specific inventory - Done
-app.get("/inventory/vendor/:vendorCode", async (req, res) => {
-  const { vendorCode } = req.params;
-
-  try {
-    const [rows] = await db.query(`
-      SELECT 
-        s.skuCode, 
-        s.name AS productTitle,
-        i.quantity,
-        i.expiryDate
-      FROM sku s
-      JOIN inventory i ON s.id = i.skuId
-      JOIN vendor v ON s.vendorId = v.id
-      WHERE v.vendorCode = ?
-    `, [vendorCode]);
-
-    const inventory = rows.map(row => ({
-      skuCode: row.skuCode,
-      productTitle: row.productTitle,
-      currentInventory: [
-        { count: row.quantity, expiry: row.expiryDate }
-      ],
-      salesLast15Days: 0
-    }));
-
-    res.json({ success: true, data: { inventory } });
-  } catch (err) {
-    console.error("Error fetching vendor inventory:", err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
-
-
-
-// 3. Bulk update inventory (Excel upload)
-app.post("/inventory/update", (req, res) => {
-  const { updates, updateTimestamp } = req.body;
-
-  if (!updates || !Array.isArray(updates)) {
-    return res.status(400).json({ success: false, message: "Invalid payload" });
-  }
-
-  const updatePromises = updates.map(u => {
-    return new Promise((resolve, reject) => {
-      const query = `
-        UPDATE inventory 
-        SET quantity = ?, expiryDate = ?, updatedAt = ? 
-        WHERE skuCode = ?
-      `;
-      db.query(query, [u.updatedInventory, u.expiryDate, updateTimestamp, u.skuCode], (err, result) => {
-        if (err) return reject(err);
-        resolve(result);
-      });
+    const result = await fetchAndStoreAmazonOrders();
+    res.status(200).json({
+      message: "Amazon orders fetched & stored successfully",
+      result,
     });
-  });
-
-  Promise.all(updatePromises)
-    .then(() => res.json({ success: true, message: "Inventory updated successfully" }))
-    .catch(err => {
-      console.error("Error updating inventory:", err);
-      res.status(500).json({ success: false, message: "Update failed" });
-    });
-});
-
-
-// 3. Get all vendors
-app.get("/vendor/all", async (req, res) => {
-  try {
-    const query = `SELECT vendorCode, brandName FROM vendor`;
-
-    // Use await, no callback
-    const [results] = await db.query(query);
-
-    res.json(results); // frontend expects array
-  } catch (err) {
-    console.error("Error fetching vendors:", err);
-    res.status(500).json({ success: false, message: "DB error" });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching orders", error: error.message });
   }
 });
 
+app.get("/fetch-orders", async (req, res) => {
+  const result = await fetchAndStoreAmazonOrders();
+  res.json(result);
+});
+
+// Run every 1 minute
+cron.schedule("*/1 * * * *", async () => {
+  console.log("⏳ Fetching Amazon Orders...");
+  const result = await fetchAndStoreAmazonOrders();
+  console.log("✅ Orders Sync Result:", result);
+});
 
 app.listen(PORT, () => {
   console.log(`Node backend running on port ${PORT}`);
