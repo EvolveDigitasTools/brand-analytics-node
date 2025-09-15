@@ -388,75 +388,302 @@ app.get("/", (req, res) => {
 // });
 
 // Meesho Upload route - Phase 5 - Working Done (Combo SKUs)
+// app.post("/upload", upload.single("file"), async (req, res) => {
+//   if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+//   const startTime = Date.now();
+//   let results = [];
+
+//   // Allowed status values
+//   const allowedReasons = [
+//         "SHIPPED", 
+//         "DELIVERED", 
+//         "READY_TO_SHIP", 
+//         "DOOR_STEP_EXCHANGED"
+//     ];
+
+//   try {
+//     const workbook = xlsx.readFile(req.file.path);
+//     const sheetName = workbook.SheetNames[0];
+//     const sheet = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+//     for (const row of sheet) {
+//       const originalSku = row["SKU"];   // keep original for reporting
+//       let skuCode = String(originalSku).trim(); // force string
+//       const qty = parseInt(row["Quantity"]);
+//       const reason = row["Reason for Credit Entry"];
+
+//       if (!skuCode || isNaN(qty)) {
+//         results.push({ skuCode: originalSku, error: "Invalid SKU/Quantity" });
+//         continue;
+//       }
+
+//       // Skip rows not in allowed reasons
+//       if (!allowedReasons.includes(reason)) continue;
+
+//       try {
+//         // Default multiplier = 1
+//         let rawSkuCode = skuCode; // backup original with PKx
+//         let multiplier = 1;
+
+//         // Check if SKU has -PKx at the end
+//         const pkMatch = skuCode.match(/-PK(\d+)$/i);
+//         if (pkMatch) {
+//           multiplier = parseInt(pkMatch[1]);
+//           skuCode = skuCode.replace(/-PK\d+$/i, ""); // strip suffix for lookup
+//         }
+
+//         // Effective deduction
+//         const deductQty = qty * multiplier;
+
+//         // 🔹 1) Check if SKU is a normal SKU in sku table
+//         const [skuRows] = await db.query(
+//           "SELECT id FROM sku WHERE skuCode = ?",
+//           [skuCode]
+//         );
+
+//         if (skuRows.length > 0) {
+//           // ✅ Normal SKU update (your existing logic)
+//           const skuID = skuRows[0].id;
+//           const [invRows] = await db.query(
+//             "SELECT id, quantity FROM inventory WHERE skuID = ? LIMIT 1",
+//             [skuID]
+//           );
+
+//           if (invRows.length === 0) {
+//             results.push({ skuCode: originalSku, error: "No inventory record found" });
+//             continue;
+//           }
+
+//           const inventory = invRows[0];
+//           let newQty = Math.max(0, inventory.quantity - deductQty);
+
+//           await db.query(
+//             "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
+//             [newQty, inventory.id]
+//           );
+
+//           results.push({
+//             originalSku: String(originalSku),
+//             baseSku: skuCode,
+//             oldQty: inventory.quantity,
+//             deducted: deductQty,
+//             newQty,
+//             reason,
+//           });
+
+//         } else {
+//             // Try combo SKU
+//             const [comboRows] = await db.query(
+//                 `SELECT csi.sku_id, csi.quantity 
+//                 FROM combo_sku cs
+//                 JOIN combo_sku_items csi ON cs.id = csi.combo_sku_id
+//                 WHERE cs.combo_name = ?`,
+//                 [rawSkuCode]
+//             );
+
+//             if (comboRows.length === 0) {
+//                 results.push({ skuCode: originalSku, error: "SKU not found (normal or combo)" });
+//                 continue;
+//             }
+
+//             // Loop through child SKUs and deduct inventory
+//             for (const child of comboRows) {
+//                 const [invRows] = await db.query(
+//                     "SELECT id, quantity FROM inventory WHERE skuID = ? LIMIT 1",
+//                     [child.sku_id]
+//                 );
+
+//                 if (invRows.length === 0) {
+//                     results.push({ skuCode: child.sku_id, error: "No inventory record found" });
+//                     continue;
+//                 }
+
+//                 const inventory = invRows[0];
+//                 const deductQty = qty * child.quantity; // qty * combo qty
+//                 let newQty = Math.max(0, inventory.quantity - deductQty);
+
+//                 await db.query(
+//                     "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
+//                     [newQty, inventory.id]
+//                 );
+
+//                 results.push({
+//                     comboSku: skuCode,
+//                     childSku: child.sku_id,
+//                     oldQty: inventory.quantity,
+//                     deducted: deductQty,
+//                     newQty,
+//                     reason,
+//                 });
+//             }
+//         }
+
+
+//       } catch (err) {
+//         results.push({ skuCode: originalSku, error: err.message });
+//       }
+//     }
+
+//     // delete uploaded file
+//     fs.unlink(req.file.path, (err) => {
+//       if (err) console.error("File cleanup failed:", err);
+//     });
+
+//     res.json({
+//       message: "Inventory updated",
+//       totalProcessed: results.length,
+//       totalErrors: results.filter(r => r.error).length,
+//       executionTime: (Date.now() - startTime) + "ms",
+//       results,
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Something went wrong" });
+//   }
+// });
+
+// Meesho Upload Route - Phase 6 - Working along normal and combo skus (Combo SKUs - Phase 3)
 app.post("/upload", upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
   const startTime = Date.now();
   let results = [];
 
-  // Allowed status values
-  const allowedReasons = [
-        "SHIPPED", 
-        "DELIVERED", 
-        "READY_TO_SHIP", 
-        "DOOR_STEP_EXCHANGED"
-    ];
+  const allowedReasons = ["SHIPPED", "DELIVERED", "READY_TO_SHIP", "DOOR_STEP_EXCHANGED"];
 
   try {
     const workbook = xlsx.readFile(req.file.path);
     const sheetName = workbook.SheetNames[0];
     const sheet = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-    for (const row of sheet) {
-      const originalSku = row["SKU"];   // keep original for reporting
-      let skuCode = String(originalSku).trim(); // force string
-      const qty = parseInt(row["Quantity"]);
-      const reason = row["Reason for Credit Entry"];
+    if (!sheet[0] || !sheet[0]["SKU"] || !sheet[0]["Reason for Credit Entry"] || !sheet[0]["Quantity"]) {
+      return res.status(400).json({ message: "Invalid Excel file format" });
+    }
 
-      if (!skuCode || isNaN(qty)) {
-        results.push({ skuCode: originalSku, error: "Invalid SKU/Quantity" });
+    for (const row of sheet) {
+      const originalSku = row["SKU"];
+      const reason = row["Reason for Credit Entry"];
+      const qty = parseInt(row["Quantity"]);
+
+      console.log("Processing row:", { originalSku, reason, qty, type: typeof originalSku });
+
+      if (!originalSku || !reason || isNaN(qty) || qty <= 0) {
+        results.push({ sku: originalSku, error: "Invalid SKU, reason, or quantity" });
         continue;
       }
 
-      // Skip rows not in allowed reasons
       if (!allowedReasons.includes(reason)) continue;
 
       try {
-        // Default multiplier = 1
-        let rawSkuCode = skuCode; // backup original with PKx
+        let skuCode = String(originalSku).trim(); // Convert to string before trimming
         let multiplier = 1;
 
-        // Check if SKU has -PKx at the end
+        // Handle -PKx suffix
         const pkMatch = skuCode.match(/-PK(\d+)$/i);
         if (pkMatch) {
-          multiplier = parseInt(pkMatch[1]);
-          skuCode = skuCode.replace(/-PK\d+$/i, ""); // strip suffix for lookup
+          multiplier = parseInt(pkMatch[1], 10);
+          skuCode = skuCode.replace(/-PK\d+$/i, "").trim();
+        }
+        console.log("Processed SKU:", skuCode, "Multiplier:", multiplier);
+
+        // 1️⃣ Combo SKU
+        console.log("Querying combo SKU:", originalSku);
+        const [comboRows] = await db.query(
+          `SELECT csi.sku_id, csi.quantity 
+           FROM combo_sku cs
+           JOIN combo_sku_items csi ON cs.id = csi.combo_sku_id
+           WHERE TRIM(LOWER(cs.combo_name)) = LOWER(?)`,
+          [String(originalSku).trim()] // Convert to string for combo query
+        ).catch(err => {
+          console.error("Combo SKU query error for", originalSku, ":", err);
+          throw err;
+        });
+
+        console.log("Combo rows for", originalSku, ":", comboRows);
+
+        if (comboRows.length > 0) {
+          // Process combo SKU
+          for (const child of comboRows) {
+            const childSkuId = child.sku_id;
+            const deductQtyChild = qty * child.quantity; // Use child.quantity, not multiplier
+            console.log("Processing child SKU ID:", childSkuId, "Deducting:", deductQtyChild);
+
+            let [invRows] = await db.query(
+              "SELECT id, quantity FROM inventory WHERE skuId = ? LIMIT 1",
+              [childSkuId]
+            ).catch(err => {
+              console.error("Inventory query error for child SKU ID:", childSkuId, err);
+              throw err;
+            });
+
+            let inventoryId, currentQty;
+            if (invRows.length === 0) {
+              console.log("Creating inventory for child SKU ID:", childSkuId);
+              const [insertInv] = await db.query(
+                "INSERT INTO inventory (skuId, quantity, inventoryUpdatedAt) VALUES (?, 0, NOW())",
+                [childSkuId]
+              );
+              inventoryId = insertInv.insertId;
+              currentQty = 0;
+            } else {
+              inventoryId = invRows[0].id;
+              currentQty = invRows[0].quantity;
+            }
+
+            const newQty = Math.max(0, currentQty - deductQtyChild);
+            await db.query(
+              "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
+              [newQty, inventoryId]
+            );
+
+            results.push({
+              comboSku: originalSku,
+              childSku: childSkuId,
+              oldQty: currentQty,
+              deducted: deductQtyChild,
+              newQty,
+              reason,
+            });
+          }
+          continue;
         }
 
-        // Effective deduction
-        const deductQty = qty * multiplier;
-
-        // 🔹 1) Check if SKU is a normal SKU in sku table
+        // 2️⃣ Normal SKU
+        console.log("Querying normal SKU:", skuCode);
         const [skuRows] = await db.query(
-          "SELECT id FROM sku WHERE skuCode = ?",
+          "SELECT id, skuCode FROM sku WHERE TRIM(LOWER(skuCode)) = LOWER(?)",
           [skuCode]
-        );
+        ).catch(err => {
+          console.error("SKU query error for", skuCode, ":", err);
+          throw err;
+        });
 
         if (skuRows.length > 0) {
-          // ✅ Normal SKU update (your existing logic)
-          const skuID = skuRows[0].id;
-          const [invRows] = await db.query(
-            "SELECT id, quantity FROM inventory WHERE skuID = ? LIMIT 1",
-            [skuID]
-          );
+          const skuId = skuRows[0].id;
+          const foundSkuCode = skuRows[0].skuCode;
+          const deductQty = qty * multiplier;
+          console.log("Found normal SKU:", foundSkuCode, "ID:", skuId, "Deducting:", deductQty);
+
+          let [invRows] = await db.query(
+            "SELECT id, quantity FROM inventory WHERE skuId = ? LIMIT 1",
+            [skuId]
+          ).catch(err => {
+            console.error("Inventory query error for skuId:", skuId, err);
+            throw err;
+          });
 
           if (invRows.length === 0) {
-            results.push({ skuCode: originalSku, error: "No inventory record found" });
-            continue;
+            console.log("Creating inventory for SKU ID:", skuId);
+            const [insertInv] = await db.query(
+              "INSERT INTO inventory (skuId, quantity, inventoryUpdatedAt) VALUES (?, 0, NOW())",
+              [skuId]
+            );
+            invRows = [{ id: insertInv.insertId, quantity: 0 }];
           }
 
           const inventory = invRows[0];
-          let newQty = Math.max(0, inventory.quantity - deductQty);
+          const newQty = Math.max(0, inventory.quantity - deductQty);
 
           await db.query(
             "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
@@ -464,81 +691,37 @@ app.post("/upload", upload.single("file"), async (req, res) => {
           );
 
           results.push({
-            originalSku: String(originalSku),
-            baseSku: skuCode,
+            originalSku,
+            type: "normal",
+            skuCode: foundSkuCode,
             oldQty: inventory.quantity,
             deducted: deductQty,
             newQty,
             reason,
           });
-
-        } else {
-            // Try combo SKU
-            const [comboRows] = await db.query(
-                `SELECT csi.sku_id, csi.quantity 
-                FROM combo_sku cs
-                JOIN combo_sku_items csi ON cs.id = csi.combo_sku_id
-                WHERE cs.combo_name = ?`,
-                [rawSkuCode]
-            );
-
-            if (comboRows.length === 0) {
-                results.push({ skuCode: originalSku, error: "SKU not found (normal or combo)" });
-                continue;
-            }
-
-            // Loop through child SKUs and deduct inventory
-            for (const child of comboRows) {
-                const [invRows] = await db.query(
-                    "SELECT id, quantity FROM inventory WHERE skuID = ? LIMIT 1",
-                    [child.sku_id]
-                );
-
-                if (invRows.length === 0) {
-                    results.push({ skuCode: child.sku_id, error: "No inventory record found" });
-                    continue;
-                }
-
-                const inventory = invRows[0];
-                const deductQty = qty * child.quantity; // qty * combo qty
-                let newQty = Math.max(0, inventory.quantity - deductQty);
-
-                await db.query(
-                    "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
-                    [newQty, inventory.id]
-                );
-
-                results.push({
-                    comboSku: skuCode,
-                    childSku: child.sku_id,
-                    oldQty: inventory.quantity,
-                    deducted: deductQty,
-                    newQty,
-                    reason,
-                });
-            }
+          continue;
         }
 
+        results.push({ sku: originalSku, error: "SKU not found (normal or combo)" });
 
       } catch (err) {
-        results.push({ skuCode: originalSku, error: err.message });
+        console.error("Error processing SKU", originalSku, ":", err);
+        results.push({ sku: originalSku, error: err.message });
       }
     }
 
-    // delete uploaded file
-    fs.unlink(req.file.path, (err) => {
-      if (err) console.error("File cleanup failed:", err);
-    });
+    fs.unlink(req.file.path, (err) => { if (err) console.error("File cleanup failed:", err); });
 
     res.json({
       message: "Inventory updated",
       totalProcessed: results.length,
       totalErrors: results.filter(r => r.error).length,
-      executionTime: (Date.now() - startTime) + "ms",
+      executionTime: `${Date.now() - startTime}ms`,
       results,
     });
+
   } catch (err) {
-    console.error(err);
+    console.error("Main error:", err);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
