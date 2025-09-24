@@ -125,6 +125,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
             );
 
             results.push({
+              uploadedSku: originalSku,
               comboSku: originalSku,
               childSku: childSkuId,
               oldQty: currentQty,
@@ -178,7 +179,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
           );
 
           results.push({
-            originalSku,
+            uploadedSku: originalSku,
             type: "normal",
             skuCode: foundSkuCode,
             oldQty: inventory.quantity,
@@ -189,7 +190,11 @@ app.post("/upload", upload.single("file"), async (req, res) => {
           continue;
         }
 
-        results.push({ sku: originalSku, error: "SKU not found (normal or combo)" });
+        results.push({ 
+          uploadedSku: originalSku,
+          sku: originalSku, 
+          error: "SKU not found (normal or combo)" 
+        });
 
       } catch (err) {
         console.error("Error processing SKU", originalSku, ":", err);
