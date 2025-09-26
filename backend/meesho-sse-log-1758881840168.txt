@@ -1,0 +1,513 @@
+2025-09-26T10:17:20.168Z - Starting processing for file: uploads\4215331b384434eb74dab9333551b32e
+2025-09-26T10:17:20.245Z - Skipping row with reason: CANCELLED, SKU: 50000069-50000034
+2025-09-26T10:17:20.246Z - Skipping row with reason: CANCELLED, SKU: 50000069-PK1
+2025-09-26T10:17:20.246Z - Skipping row with reason: CANCELLED, SKU: 50000032-PK1
+2025-09-26T10:17:20.247Z - Skipping row with reason: CANCELLED, SKU: 50000239-PK1
+2025-09-26T10:17:20.248Z - Skipping row with reason: CANCELLED, SKU: 50000235
+2025-09-26T10:17:20.248Z - Skipping row with reason: CANCELLED, SKU: 50000034-PK2
+2025-09-26T10:17:20.249Z - Skipping row with reason: CANCELLED, SKU: 50000253-PK1
+2025-09-26T10:17:20.249Z - Skipping row with reason: CANCELLED, SKU: 50000235
+2025-09-26T10:17:20.249Z - Skipping row with reason: CANCELLED, SKU: 50000155
+2025-09-26T10:17:20.250Z - Skipping row with reason: CANCELLED, SKU: 50000028-PK1
+2025-09-26T10:17:20.250Z - Skipping row with reason: CANCELLED, SKU: PLNCHN-GRS-10GM-PK3
+2025-09-26T10:17:20.250Z - Skipping row with reason: CANCELLED, SKU: 50003240_PK1
+2025-09-26T10:17:20.251Z - Skipping row with reason: CANCELLED, SKU: 50003240_PK1
+2025-09-26T10:17:20.251Z - Skipping row with reason: CANCELLED, SKU: 50000028-PK1
+2025-09-26T10:17:20.253Z - Skipping row with reason: CANCELLED, SKU: 50000069-50000034
+2025-09-26T10:17:20.253Z - Skipping row with reason: CANCELLED, SKU: 50000855-PK1
+2025-09-26T10:17:20.253Z - Skipping row with reason: CANCELLED, SKU: 50004053
+2025-09-26T10:17:20.254Z - Skipping row with reason: CANCELLED, SKU: 50000028-PK1
+2025-09-26T10:17:20.254Z - Skipping row with reason: CANCELLED, SKU: 50000034-PK2
+2025-09-26T10:17:20.255Z - Skipping row with reason: CANCELLED, SKU: 50002315-PK2
+2025-09-26T10:17:20.255Z - Skipping row with reason: CANCELLED, SKU: 50000028-PK1
+2025-09-26T10:17:20.257Z - Skipping row with reason: CANCELLED, SKU: 50000028-PK1
+2025-09-26T10:17:20.257Z - Skipping row with reason: CANCELLED, SKU: 50000028-PK1
+2025-09-26T10:17:20.258Z - Skipping row with reason: CANCELLED, SKU: 50000235
+2025-09-26T10:17:20.259Z - Skipping row with reason: CANCELLED, SKU: 50003561-PK3
+2025-09-26T10:17:20.260Z - Skipping row with reason: CANCELLED, SKU: 50000239-PK1
+2025-09-26T10:17:20.260Z - Skipping row with reason: CANCELLED, SKU: 50000066_PK1
+2025-09-26T10:17:20.261Z - Skipping row with reason: CANCELLED, SKU: 50000032_Combo
+2025-09-26T10:17:20.262Z - Skipping row with reason: CANCELLED, SKU: 50000239-PK1
+2025-09-26T10:17:20.263Z - Skipping row with reason: CANCELLED, SKU: 50000239-PK1
+2025-09-26T10:17:20.263Z - Skipping row with reason: CANCELLED, SKU: 50003240_PK1
+2025-09-26T10:17:20.264Z - Processing 257 rows (all READY_TO_SHIP)
+2025-09-26T10:17:23.726Z - Row 1: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:17:24.755Z - Row 2: Successfully updated normal SKU WRA06-2-PK3
+2025-09-26T10:17:25.770Z - Row 3: Successfully updated combo SKU 50001726-1, child 1163
+2025-09-26T10:17:26.897Z - Row 4: Successfully updated normal SKU 50004065
+2025-09-26T10:17:28.022Z - Row 5: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:17:28.024Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:17:29.151Z - Row 6: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:17:30.379Z - Row 7: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:17:30.380Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:17:31.403Z - Row 8: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:17:31.404Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:17:32.631Z - Row 9: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:17:32.633Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:17:33.643Z - Row 10: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:17:34.612Z - Row 11: Successfully updated combo SKU 50002153_Combo_PK-2, child 639
+2025-09-26T10:17:34.613Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:17:35.804Z - Row 12: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:17:36.773Z - Row 13: Successfully updated normal SKU 50000247-PK1
+2025-09-26T10:17:37.961Z - Row 14: Successfully updated normal SKU 50000152-PK1
+2025-09-26T10:17:37.962Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:17:38.996Z - Row 15: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:17:38.997Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:17:40.104Z - Row 16: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:17:41.309Z - Row 17: Successfully updated combo SKU 50000032_Combo, child 605
+2025-09-26T10:17:41.310Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:17:42.360Z - Row 18: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:17:43.487Z - Row 19: Successfully updated combo SKU WRA20-WSE20, child 177
+2025-09-26T10:17:44.095Z - Row 19: Successfully updated combo SKU WRA20-WSE20, child 184
+2025-09-26T10:17:44.097Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:17:45.329Z - Row 20: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:17:45.330Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:17:46.559Z - Row 21: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:17:47.480Z - Row 22: Successfully updated normal SKU 50002319-PK1
+2025-09-26T10:17:47.481Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:17:48.401Z - Row 23: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:17:49.319Z - Row 24: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:17:49.320Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:17:50.552Z - Row 25: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:17:51.744Z - Row 26: Successfully updated normal SKU 50004053
+2025-09-26T10:17:51.745Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:17:52.905Z - Row 27: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:17:52.906Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:17:54.033Z - Row 28: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:17:55.253Z - Row 29: Successfully updated normal SKU 50003228-PK1
+2025-09-26T10:17:55.254Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:17:56.484Z - Row 30: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:17:57.610Z - Row 31: Successfully updated normal SKU 50003228-PK2
+2025-09-26T10:17:57.611Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:17:58.797Z - Row 32: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:17:58.798Z - Duplicate SKU detected: 50000247-PK1
+2025-09-26T10:17:59.860Z - Row 33: Successfully updated normal SKU 50000247-PK1
+2025-09-26T10:17:59.861Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:18:00.888Z - Row 34: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:18:01.907Z - Row 35: Successfully updated normal SKU 50000096-PK3
+2025-09-26T10:18:01.908Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:18:02.936Z - Row 36: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:18:04.072Z - Row 37: Successfully updated normal SKU FAA11AB0007-PK3
+2025-09-26T10:18:04.073Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:18:05.186Z - Row 38: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:18:05.187Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:18:06.621Z - Row 39: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:18:06.622Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:18:07.748Z - Row 40: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:18:07.749Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:18:09.079Z - Row 41: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:18:09.080Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:18:10.101Z - Row 42: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:18:10.102Z - Duplicate SKU detected: 50000152-PK1
+2025-09-26T10:18:11.123Z - Row 43: Successfully updated normal SKU 50000152-PK1
+2025-09-26T10:18:11.124Z - Duplicate SKU detected: WRA20-WSE20
+2025-09-26T10:18:12.109Z - Row 44: Successfully updated combo SKU WRA20-WSE20, child 177
+2025-09-26T10:18:12.867Z - Row 44: Successfully updated combo SKU WRA20-WSE20, child 184
+2025-09-26T10:18:12.868Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:18:14.094Z - Row 45: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:18:14.095Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:18:15.126Z - Row 46: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:18:16.348Z - Row 47: Successfully updated normal SKU FAH11AB0005-PK3
+2025-09-26T10:18:17.475Z - Row 48: Successfully updated normal SKU 50000235
+2025-09-26T10:18:17.476Z - Flushing batch with 50 items at 19%
+2025-09-26T10:18:17.477Z - Duplicate SKU detected: 50004053
+2025-09-26T10:18:18.709Z - Row 49: Successfully updated normal SKU 50004053
+2025-09-26T10:18:19.782Z - Row 50: Successfully updated combo SKU LH-UBT-FW-FC, child 22
+2025-09-26T10:18:20.553Z - Row 50: Successfully updated combo SKU LH-UBT-FW-FC, child 643
+2025-09-26T10:18:21.775Z - Row 51: Successfully updated normal SKU 50003664-PK1
+2025-09-26T10:18:21.776Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:18:22.904Z - Row 52: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:18:22.905Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:18:24.131Z - Row 53: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:18:24.132Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:18:25.045Z - Row 54: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:18:25.046Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:18:26.079Z - Row 55: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:18:27.100Z - Row 56: Successfully updated combo SKU 50002153-50000039, child 639
+2025-09-26T10:18:27.920Z - Row 56: Successfully updated combo SKU 50002153-50000039, child 640
+2025-09-26T10:18:29.148Z - Row 57: Successfully updated normal SKU 50000155
+2025-09-26T10:18:30.068Z - Row 58: Successfully updated normal SKU 50000032-PK1
+2025-09-26T10:18:30.069Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:18:30.999Z - Row 59: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:18:32.116Z - Row 60: Successfully updated combo SKU 50000795-50002099, child 592
+2025-09-26T10:18:33.347Z - Row 61: Successfully updated normal SKU 50004053-PK2
+2025-09-26T10:18:33.348Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:18:34.489Z - Row 62: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:18:34.490Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:18:35.599Z - Row 63: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:18:35.600Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:18:36.833Z - Row 64: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:18:37.851Z - Row 65: Successfully updated combo SKU 50001892_PK1, child 30
+2025-09-26T10:18:38.880Z - Row 66: Successfully updated normal SKU 50000115-PK2
+2025-09-26T10:18:39.901Z - Row 67: Successfully updated combo SKU 50000795-50003581, child 592
+2025-09-26T10:18:40.311Z - Row 68: Failed to process SKU LyenTIEy
+2025-09-26T10:18:40.312Z - Duplicate SKU detected: 50000152-PK1
+2025-09-26T10:18:41.439Z - Row 69: Successfully updated normal SKU 50000152-PK1
+2025-09-26T10:18:42.417Z - Row 70: Successfully updated combo SKU 50000031_Combo, child 606
+2025-09-26T10:18:42.418Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:18:43.588Z - Row 71: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:18:43.589Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:18:44.816Z - Row 72: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:18:44.817Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:18:46.048Z - Row 73: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:18:46.049Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:18:47.224Z - Row 74: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:18:47.225Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:18:48.503Z - Row 75: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:18:48.504Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:18:49.566Z - Row 76: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:18:49.566Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:18:50.755Z - Row 77: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:18:50.756Z - Duplicate SKU detected: 50004053
+2025-09-26T10:18:51.881Z - Row 78: Successfully updated normal SKU 50004053
+2025-09-26T10:18:53.113Z - Row 79: Successfully updated normal SKU 50002315-PK2
+2025-09-26T10:18:53.114Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:18:54.439Z - Row 80: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:18:54.439Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:18:55.670Z - Row 81: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:18:56.796Z - Row 82: Successfully updated combo SKU C3Ql_D8J, child 608
+2025-09-26T10:18:57.402Z - Row 82: Successfully updated combo SKU C3Ql_D8J, child 608
+2025-09-26T10:18:58.128Z - Row 82: Successfully updated combo SKU C3Ql_D8J, child 616
+2025-09-26T10:18:58.129Z - Duplicate SKU detected: 50004053
+2025-09-26T10:18:59.253Z - Row 83: Successfully updated normal SKU 50004053
+2025-09-26T10:18:59.255Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:19:00.199Z - Row 84: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:19:00.200Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:19:01.306Z - Row 85: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:19:01.307Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:19:02.384Z - Row 86: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:19:03.556Z - Row 87: Successfully updated combo SKU 50000066_PK1, child 29
+2025-09-26T10:19:03.557Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:19:04.689Z - Row 88: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:19:05.811Z - Row 89: Successfully updated normal SKU 50002099-PK1
+2025-09-26T10:19:05.813Z - Duplicate SKU detected: 50003228-PK2
+2025-09-26T10:19:07.041Z - Row 90: Successfully updated normal SKU 50003228-PK2
+2025-09-26T10:19:07.042Z - Duplicate SKU detected: WRA20-WSE20
+2025-09-26T10:19:08.168Z - Row 91: Successfully updated combo SKU WRA20-WSE20, child 177
+2025-09-26T10:19:08.880Z - Row 91: Successfully updated combo SKU WRA20-WSE20, child 184
+2025-09-26T10:19:08.881Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:19:10.005Z - Row 92: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:19:10.006Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:19:11.234Z - Row 93: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:19:11.235Z - Flushing batch with 50 items at 36%
+2025-09-26T10:19:11.237Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:19:12.362Z - Row 94: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:19:12.363Z - Duplicate SKU detected: 50000066_PK1
+2025-09-26T10:19:13.270Z - Row 95: Successfully updated combo SKU 50000066_PK1, child 29
+2025-09-26T10:19:13.271Z - Duplicate SKU detected: WRA20-WSE20
+2025-09-26T10:19:14.509Z - Row 96: Successfully updated combo SKU WRA20-WSE20, child 177
+2025-09-26T10:19:15.126Z - Row 96: Successfully updated combo SKU WRA20-WSE20, child 184
+2025-09-26T10:19:15.126Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:19:16.250Z - Row 97: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:19:16.251Z - Duplicate SKU detected: 50000066_PK1
+2025-09-26T10:19:17.483Z - Row 98: Successfully updated combo SKU 50000066_PK1, child 29
+2025-09-26T10:19:18.711Z - Row 99: Successfully updated normal SKU WRA06-2-PK2
+2025-09-26T10:19:18.712Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:19:19.841Z - Row 100: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:19:21.066Z - Row 101: Successfully updated normal SKU 50000069-PK1
+2025-09-26T10:19:22.397Z - Row 102: Successfully updated combo SKU LH-COMBO-10, child 656
+2025-09-26T10:19:23.113Z - Row 102: Successfully updated combo SKU LH-COMBO-10, child 616
+2025-09-26T10:19:23.114Z - Duplicate SKU detected: 50003664-PK1
+2025-09-26T10:19:24.142Z - Row 103: Successfully updated normal SKU 50003664-PK1
+2025-09-26T10:19:24.143Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:19:25.162Z - Row 104: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:19:25.163Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:19:26.284Z - Row 105: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:19:26.286Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:19:27.520Z - Row 106: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:19:28.542Z - Row 107: Successfully updated combo SKU MLKSK-BTR-CHO-STW-VNL-100GM-COM4, child 115
+2025-09-26T10:19:29.256Z - Row 107: Successfully updated combo SKU MLKSK-BTR-CHO-STW-VNL-100GM-COM4, child 116
+2025-09-26T10:19:29.974Z - Row 107: Successfully updated combo SKU MLKSK-BTR-CHO-STW-VNL-100GM-COM4, child 120
+2025-09-26T10:19:30.591Z - Row 107: Successfully updated combo SKU MLKSK-BTR-CHO-STW-VNL-100GM-COM4, child 121
+2025-09-26T10:19:30.592Z - Duplicate SKU detected: 50004053
+2025-09-26T10:19:31.720Z - Row 108: Successfully updated normal SKU 50004053
+2025-09-26T10:19:31.720Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:19:32.848Z - Row 109: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:19:34.070Z - Row 110: Successfully updated normal SKU MLKSK-CHO-100GM-PK6
+2025-09-26T10:19:35.196Z - Row 111: Successfully updated normal SKU 50001722-PK1
+2025-09-26T10:19:36.527Z - Row 112: Successfully updated normal SKU 50004030-PK1
+2025-09-26T10:19:36.528Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:19:37.759Z - Row 113: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:19:37.760Z - Duplicate SKU detected: 50000096-PK3
+2025-09-26T10:19:38.987Z - Row 114: Successfully updated normal SKU 50000096-PK3
+2025-09-26T10:19:38.988Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:19:40.215Z - Row 115: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:19:40.216Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:19:41.485Z - Row 116: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:19:41.486Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:19:42.569Z - Row 117: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:19:42.570Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:19:43.698Z - Row 118: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:19:44.719Z - Row 119: Successfully updated normal SKU 50001891-PK2
+2025-09-26T10:19:44.719Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:19:45.847Z - Row 120: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:19:45.848Z - Duplicate SKU detected: 50002099-PK1
+2025-09-26T10:19:47.075Z - Row 121: Successfully updated normal SKU 50002099-PK1
+2025-09-26T10:19:47.076Z - Duplicate SKU detected: 50004053
+2025-09-26T10:19:48.305Z - Row 122: Successfully updated normal SKU 50004053
+2025-09-26T10:19:48.307Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:19:49.223Z - Row 123: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:19:50.147Z - Row 124: Successfully updated normal SKU 50001655-PK1
+2025-09-26T10:19:50.148Z - Duplicate SKU detected: WRA20-WSE20
+2025-09-26T10:19:51.169Z - Row 125: Successfully updated combo SKU WRA20-WSE20, child 177
+2025-09-26T10:19:51.774Z - Row 125: Successfully updated combo SKU WRA20-WSE20, child 184
+2025-09-26T10:19:51.774Z - Duplicate SKU detected: 50001892_PK1
+2025-09-26T10:19:52.807Z - Row 126: Successfully updated combo SKU 50001892_PK1, child 30
+2025-09-26T10:19:52.808Z - Duplicate SKU detected: WRA06-2-PK2
+2025-09-26T10:19:54.039Z - Row 127: Successfully updated normal SKU WRA06-2-PK2
+2025-09-26T10:19:54.040Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:19:55.163Z - Row 128: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:19:55.164Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:19:56.394Z - Row 129: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:19:57.621Z - Row 130: Successfully updated combo SKU LH-Combo-88, child 6
+2025-09-26T10:19:58.339Z - Row 130: Successfully updated combo SKU LH-Combo-88, child 637
+2025-09-26T10:19:58.340Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:19:59.264Z - Row 131: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:19:59.265Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:20:00.388Z - Row 132: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:20:00.389Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:20:01.521Z - Row 133: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:20:01.523Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:20:02.743Z - Row 134: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:20:02.744Z - Duplicate SKU detected: 50000247-PK1
+2025-09-26T10:20:03.769Z - Row 135: Successfully updated normal SKU 50000247-PK1
+2025-09-26T10:20:03.770Z - Duplicate SKU detected: WRA06-2-PK3
+2025-09-26T10:20:04.994Z - Row 136: Successfully updated normal SKU WRA06-2-PK3
+2025-09-26T10:20:04.995Z - Flushing batch with 50 items at 53%
+2025-09-26T10:20:04.997Z - Duplicate SKU detected: 50000795-50003581
+2025-09-26T10:20:06.225Z - Row 137: Successfully updated combo SKU 50000795-50003581, child 592
+2025-09-26T10:20:06.226Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:20:07.455Z - Row 138: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:20:07.457Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:20:08.682Z - Row 139: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:20:08.683Z - Duplicate SKU detected: 50001722-PK1
+2025-09-26T10:20:09.911Z - Row 140: Successfully updated normal SKU 50001722-PK1
+2025-09-26T10:20:09.912Z - Duplicate SKU detected: 50001726-1
+2025-09-26T10:20:11.043Z - Row 141: Successfully updated combo SKU 50001726-1, child 1163
+2025-09-26T10:20:11.044Z - Duplicate SKU detected: 50000032-PK1
+2025-09-26T10:20:12.063Z - Row 142: Successfully updated normal SKU 50000032-PK1
+2025-09-26T10:20:12.064Z - Duplicate SKU detected: 50001892_PK1
+2025-09-26T10:20:13.291Z - Row 143: Successfully updated combo SKU 50001892_PK1, child 30
+2025-09-26T10:20:14.519Z - Row 144: Successfully updated normal SKU 50001651-PK1
+2025-09-26T10:20:14.520Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:20:15.435Z - Row 145: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:20:16.369Z - Row 146: Successfully updated normal SKU 50000057
+2025-09-26T10:20:16.371Z - Duplicate SKU detected: 50000066_PK1
+2025-09-26T10:20:17.694Z - Row 147: Successfully updated combo SKU 50000066_PK1, child 29
+2025-09-26T10:20:17.695Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:20:18.810Z - Row 148: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:20:19.851Z - Row 149: Successfully updated combo SKU 50000092-50000096, child 617
+2025-09-26T10:20:20.563Z - Row 149: Successfully updated combo SKU 50000092-50000096, child 608
+2025-09-26T10:20:20.564Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:20:21.790Z - Row 150: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:20:21.791Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:20:23.016Z - Row 151: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:20:23.017Z - Duplicate SKU detected: 50001892_PK1
+2025-09-26T10:20:24.041Z - Row 152: Successfully updated combo SKU 50001892_PK1, child 30
+2025-09-26T10:20:24.043Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:20:25.164Z - Row 153: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:20:25.165Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:20:26.093Z - Row 154: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:20:26.104Z - Duplicate SKU detected: 50003664-PK1
+2025-09-26T10:20:27.318Z - Row 155: Successfully updated normal SKU 50003664-PK1
+2025-09-26T10:20:27.320Z - Duplicate SKU detected: 50002319-PK1
+2025-09-26T10:20:28.450Z - Row 156: Successfully updated normal SKU 50002319-PK1
+2025-09-26T10:20:28.451Z - Duplicate SKU detected: 50003664-PK1
+2025-09-26T10:20:29.572Z - Row 157: Successfully updated normal SKU 50003664-PK1
+2025-09-26T10:20:29.573Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:20:30.799Z - Row 158: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:20:30.800Z - Duplicate SKU detected: 50003228-PK1
+2025-09-26T10:20:31.923Z - Row 159: Successfully updated normal SKU 50003228-PK1
+2025-09-26T10:20:31.926Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:20:33.166Z - Row 160: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:20:33.167Z - Duplicate SKU detected: 50000247-PK1
+2025-09-26T10:20:34.181Z - Row 161: Successfully updated normal SKU 50000247-PK1
+2025-09-26T10:20:34.595Z - Row 162: Failed to process SKU ICE-VNL-BTR-STW-CHO-PK4
+2025-09-26T10:20:34.596Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:20:35.714Z - Row 163: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:20:35.716Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:20:36.945Z - Row 164: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:20:36.947Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:20:38.174Z - Row 165: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:20:38.175Z - Duplicate SKU detected: WRA06-2-PK2
+2025-09-26T10:20:39.198Z - Row 166: Successfully updated normal SKU WRA06-2-PK2
+2025-09-26T10:20:39.199Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:20:40.426Z - Row 167: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:20:40.427Z - Duplicate SKU detected: 50000247-PK1
+2025-09-26T10:20:41.452Z - Row 168: Successfully updated normal SKU 50000247-PK1
+2025-09-26T10:20:41.453Z - Duplicate SKU detected: 50000152-PK1
+2025-09-26T10:20:42.578Z - Row 169: Successfully updated normal SKU 50000152-PK1
+2025-09-26T10:20:42.579Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:20:43.709Z - Row 170: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:20:43.710Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:20:44.932Z - Row 171: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:20:44.933Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:20:46.057Z - Row 172: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:20:47.275Z - Row 173: Successfully updated normal SKU 50000092-PK2
+2025-09-26T10:20:47.276Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:20:48.312Z - Row 174: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:20:48.313Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:20:49.438Z - Row 175: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:20:49.439Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:20:50.564Z - Row 176: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:20:51.691Z - Row 177: Successfully updated normal SKU 50000151-PK1
+2025-09-26T10:20:51.692Z - Duplicate SKU detected: 50000066_PK1
+2025-09-26T10:20:52.921Z - Row 178: Successfully updated combo SKU 50000066_PK1, child 29
+2025-09-26T10:20:52.922Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:20:54.052Z - Row 179: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:20:54.053Z - Duplicate SKU detected: 50000069-PK1
+2025-09-26T10:20:55.282Z - Row 180: Successfully updated normal SKU 50000069-PK1
+2025-09-26T10:20:55.283Z - Duplicate SKU detected: 50000247-PK1
+2025-09-26T10:20:56.409Z - Row 181: Successfully updated normal SKU 50000247-PK1
+2025-09-26T10:20:56.410Z - Duplicate SKU detected: 50001722-PK1
+2025-09-26T10:20:57.422Z - Row 182: Successfully updated normal SKU 50001722-PK1
+2025-09-26T10:20:57.424Z - Duplicate SKU detected: 50004053-PK2
+2025-09-26T10:20:58.528Z - Row 183: Successfully updated normal SKU 50004053-PK2
+2025-09-26T10:20:58.529Z - Duplicate SKU detected: 50000247-PK1
+2025-09-26T10:20:59.687Z - Row 184: Successfully updated normal SKU 50000247-PK1
+2025-09-26T10:21:00.813Z - Row 185: Successfully updated normal SKU 50000329-PK1
+2025-09-26T10:21:00.813Z - Flushing batch with 50 items at 72%
+2025-09-26T10:21:00.814Z - Duplicate SKU detected: LH-COMBO-10
+2025-09-26T10:21:01.945Z - Row 186: Successfully updated combo SKU LH-COMBO-10, child 656
+2025-09-26T10:21:02.758Z - Row 186: Successfully updated combo SKU LH-COMBO-10, child 616
+2025-09-26T10:21:02.759Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:21:03.782Z - Row 187: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:21:03.783Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:21:05.016Z - Row 188: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:21:05.016Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:21:06.140Z - Row 189: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:21:06.141Z - Duplicate SKU detected: 50001891-PK2
+2025-09-26T10:21:07.467Z - Row 190: Successfully updated normal SKU 50001891-PK2
+2025-09-26T10:21:07.468Z - Duplicate SKU detected: 50003664-PK1
+2025-09-26T10:21:08.663Z - Row 191: Successfully updated normal SKU 50003664-PK1
+2025-09-26T10:21:08.664Z - Duplicate SKU detected: 50001651-PK1
+2025-09-26T10:21:09.823Z - Row 192: Successfully updated normal SKU 50001651-PK1
+2025-09-26T10:21:09.824Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:21:10.847Z - Row 193: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:21:10.849Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:21:11.972Z - Row 194: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:21:11.973Z - Duplicate SKU detected: 50001892_PK1
+2025-09-26T10:21:13.100Z - Row 195: Successfully updated combo SKU 50001892_PK1, child 30
+2025-09-26T10:21:13.101Z - Duplicate SKU detected: 50000235
+2025-09-26T10:21:14.226Z - Row 196: Successfully updated normal SKU 50000235
+2025-09-26T10:21:15.255Z - Row 197: Successfully updated normal SKU ELC07
+2025-09-26T10:21:16.302Z - Row 198: Successfully updated normal SKU PLNCHN-GRS-10GM-PK3
+2025-09-26T10:21:17.508Z - Row 199: Successfully updated normal SKU 50000072-PK2
+2025-09-26T10:21:17.509Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:21:18.416Z - Row 200: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:21:19.448Z - Row 201: Successfully updated normal SKU 50002243-PK1
+2025-09-26T10:21:19.449Z - Duplicate SKU detected: 50000032-PK1
+2025-09-26T10:21:20.577Z - Row 202: Successfully updated normal SKU 50000032-PK1
+2025-09-26T10:21:20.577Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:21:21.804Z - Row 203: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:21:21.805Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:21:23.033Z - Row 204: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:21:23.034Z - Duplicate SKU detected: WRA06-2-PK2
+2025-09-26T10:21:24.058Z - Row 205: Successfully updated normal SKU WRA06-2-PK2
+2025-09-26T10:21:24.059Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:21:25.284Z - Row 206: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:21:25.285Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:21:26.359Z - Row 207: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:21:26.360Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:21:27.436Z - Row 208: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:21:27.437Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:21:28.665Z - Row 209: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:21:28.667Z - Duplicate SKU detected: 50003664-PK1
+2025-09-26T10:21:29.796Z - Row 210: Successfully updated normal SKU 50003664-PK1
+2025-09-26T10:21:29.797Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:21:30.918Z - Row 211: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:21:30.919Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:21:31.942Z - Row 212: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:21:31.943Z - Duplicate SKU detected: 50003664-PK1
+2025-09-26T10:21:33.171Z - Row 213: Successfully updated normal SKU 50003664-PK1
+2025-09-26T10:21:34.399Z - Row 214: Successfully updated normal SKU 50001656-PK1
+2025-09-26T10:21:35.628Z - Row 215: Successfully updated normal SKU 50002153-PK1
+2025-09-26T10:21:35.629Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:21:36.756Z - Row 216: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:21:36.757Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:21:37.882Z - Row 217: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:21:39.020Z - Row 218: Successfully updated normal SKU 50000114-PK1
+2025-09-26T10:21:39.021Z - Duplicate SKU detected: 50001655-PK1
+2025-09-26T10:21:40.134Z - Row 219: Successfully updated normal SKU 50001655-PK1
+2025-09-26T10:21:40.137Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:21:41.259Z - Row 220: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:21:41.260Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:21:42.387Z - Row 221: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:21:42.389Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:21:43.622Z - Row 222: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:21:43.623Z - Duplicate SKU detected: 50004053
+2025-09-26T10:21:45.006Z - Row 223: Successfully updated normal SKU 50004053
+2025-09-26T10:21:45.007Z - Duplicate SKU detected: 50001722-PK1
+2025-09-26T10:21:45.970Z - Row 224: Successfully updated normal SKU 50001722-PK1
+2025-09-26T10:21:45.971Z - Duplicate SKU detected: WRA06-2-PK3
+2025-09-26T10:21:46.891Z - Row 225: Successfully updated normal SKU WRA06-2-PK3
+2025-09-26T10:21:46.892Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:21:48.121Z - Row 226: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:21:48.122Z - Duplicate SKU detected: 50002153-PK1
+2025-09-26T10:21:49.228Z - Row 227: Successfully updated normal SKU 50002153-PK1
+2025-09-26T10:21:49.229Z - Duplicate SKU detected: 50000795-50003581
+2025-09-26T10:21:50.241Z - Row 228: Successfully updated combo SKU 50000795-50003581, child 592
+2025-09-26T10:21:50.242Z - Duplicate SKU detected: 50000795-50003581
+2025-09-26T10:21:51.295Z - Row 229: Successfully updated combo SKU 50000795-50003581, child 592
+2025-09-26T10:21:51.296Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:21:52.627Z - Row 230: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:21:52.628Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:21:53.847Z - Row 231: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:21:53.848Z - Duplicate SKU detected: 50004053
+2025-09-26T10:21:54.973Z - Row 232: Successfully updated normal SKU 50004053
+2025-09-26T10:21:54.974Z - Duplicate SKU detected: PLNCHN-GRS-10GM-PK3
+2025-09-26T10:21:56.302Z - Row 233: Successfully updated normal SKU PLNCHN-GRS-10GM-PK3
+2025-09-26T10:21:56.303Z - Duplicate SKU detected: 50002315-PK2
+2025-09-26T10:21:57.431Z - Row 234: Successfully updated normal SKU 50002315-PK2
+2025-09-26T10:21:57.432Z - Flushing batch with 50 items at 91%
+2025-09-26T10:21:57.433Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:21:58.557Z - Row 235: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:21:58.558Z - Duplicate SKU detected: WRA06-2-PK2
+2025-09-26T10:21:59.582Z - Row 236: Successfully updated normal SKU WRA06-2-PK2
+2025-09-26T10:21:59.583Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:22:00.604Z - Row 237: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:22:00.605Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:22:01.730Z - Row 238: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:22:01.731Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:22:02.857Z - Row 239: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:22:03.987Z - Row 240: Successfully updated normal SKU 50000107-PK2
+2025-09-26T10:22:03.987Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:22:04.903Z - Row 241: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:22:04.903Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:22:06.030Z - Row 242: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:22:06.032Z - Duplicate SKU detected: 50000069-PK1
+2025-09-26T10:22:07.157Z - Row 243: Successfully updated normal SKU 50000069-PK1
+2025-09-26T10:22:07.159Z - Duplicate SKU detected: 50003664-PK1
+2025-09-26T10:22:08.183Z - Row 244: Successfully updated normal SKU 50003664-PK1
+2025-09-26T10:22:08.184Z - Duplicate SKU detected: 50000028-PK1
+2025-09-26T10:22:09.306Z - Row 245: Successfully updated normal SKU 50000028-PK1
+2025-09-26T10:22:09.307Z - Duplicate SKU detected: 50003240_PK1
+2025-09-26T10:22:10.231Z - Row 246: Successfully updated combo SKU 50003240_PK1, child 9
+2025-09-26T10:22:11.408Z - Row 247: Successfully updated combo SKU ICE-VNL-STW-MNG-KPT-100G, child 143
+2025-09-26T10:22:12.176Z - Row 247: Successfully updated combo SKU ICE-VNL-STW-MNG-KPT-100G, child 138
+2025-09-26T10:22:12.911Z - Row 247: Successfully updated combo SKU ICE-VNL-STW-MNG-KPT-100G, child 144
+2025-09-26T10:22:13.714Z - Row 247: Successfully updated combo SKU ICE-VNL-STW-MNG-KPT-100G, child 139
+2025-09-26T10:22:13.715Z - Duplicate SKU detected: 50001722-PK1
+2025-09-26T10:22:14.736Z - Row 248: Successfully updated normal SKU 50001722-PK1
+2025-09-26T10:22:14.737Z - Duplicate SKU detected: 50000034-PK2
+2025-09-26T10:22:15.658Z - Row 249: Successfully updated normal SKU 50000034-PK2
+2025-09-26T10:22:15.658Z - Duplicate SKU detected: 50000152-PK1
+2025-09-26T10:22:16.572Z - Row 250: Successfully updated normal SKU 50000152-PK1
+2025-09-26T10:22:17.705Z - Row 251: Successfully updated combo SKU 50004053-PK1 R-50001991, child 1132
+2025-09-26T10:22:17.706Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:22:18.788Z - Row 252: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:22:18.789Z - Duplicate SKU detected: 50000096-PK3
+2025-09-26T10:22:19.820Z - Row 253: Successfully updated normal SKU 50000096-PK3
+2025-09-26T10:22:19.821Z - Duplicate SKU detected: 50000096-PK3
+2025-09-26T10:22:20.777Z - Row 254: Successfully updated normal SKU 50000096-PK3
+2025-09-26T10:22:20.778Z - Duplicate SKU detected: 50000239-PK1
+2025-09-26T10:22:21.903Z - Row 255: Successfully updated normal SKU 50000239-PK1
+2025-09-26T10:22:21.907Z - Duplicate SKU detected: ICE-VNL-STW-MNG-KPT-100G
+2025-09-26T10:22:23.138Z - Row 256: Successfully updated combo SKU ICE-VNL-STW-MNG-KPT-100G, child 143
+2025-09-26T10:22:23.848Z - Row 256: Successfully updated combo SKU ICE-VNL-STW-MNG-KPT-100G, child 138
+2025-09-26T10:22:24.645Z - Row 256: Successfully updated combo SKU ICE-VNL-STW-MNG-KPT-100G, child 144
+2025-09-26T10:22:25.387Z - Row 256: Successfully updated combo SKU ICE-VNL-STW-MNG-KPT-100G, child 139
+2025-09-26T10:22:25.388Z - Duplicate SKU detected: WRA06-2-PK2
+2025-09-26T10:22:26.512Z - Row 257: Successfully updated normal SKU WRA06-2-PK2
+2025-09-26T10:22:26.513Z - Flushing batch with 29 items at 100%
+2025-09-26T10:22:26.513Z - Total successful updates: 277, Total rows processed: 257
