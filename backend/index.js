@@ -218,7 +218,6 @@ app.get("/", (req, res) => {
 //   }
 // });
 
-
 // Meesho Upload Route - Phase 7 Working - Testing with real time pregress bar
 app.post("/meesho-sse", upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: "No file uploaded" });
@@ -395,7 +394,6 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
     res.end();
   }
 });
-
 
 // Amazon Sheet Upload
 app.post("/upload-amazon", upload.single("file"), async (req, res) => {
@@ -720,11 +718,11 @@ app.get("/fetch-orders", async (req, res) => {
 });
 
 // Run every 1 minute
-cron.schedule("*/1 * * * *", async () => {
-  console.log("⏳ Fetching Amazon Orders...");
-  const result = await fetchAndStoreAmazonOrders();
-  console.log("✅ Orders Sync Result:", result);
-});
+// cron.schedule("*/1 * * * *", async () => {
+//   console.log("⏳ Fetching Amazon Orders...");
+//   const result = await fetchAndStoreAmazonOrders();
+//   console.log("✅ Orders Sync Result:", result);
+// });
 
 app.listen(PORT, () => {
   console.log(`Node backend running on port ${PORT}`);

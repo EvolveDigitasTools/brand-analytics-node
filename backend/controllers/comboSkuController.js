@@ -289,8 +289,7 @@ import db from "../db.js";
 //   }
 // };
 
-
-// Phase - 4 Testing New Combos Working
+// Phase - 4 New Combos Updating with real time progress
 export const uploadComboSkuExcel = async (req, res) => {
   try {
     if (!req.file) {
@@ -307,14 +306,22 @@ export const uploadComboSkuExcel = async (req, res) => {
     let skippedSkuItems = 0;
     let missingSkus = [];
 
+    // ✅ Enable streaming response
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Transfer-Encoding", "chunked");
+    res.flushHeaders?.(); // for express, ensures headers are sent immediately
+
+    let processed = 0;
+    const totalRows = rows.length;
+
     for (const row of rows) {
+      processed++;
+
       const mappingCodeRaw = row["Mapping SKU Code"];
       if (!mappingCodeRaw) continue;
 
-      // ✅ Clean combo name
       const comboName = mappingCodeRaw.toString().replace(/\u00A0/g, " ").trim();
 
-      // 1️⃣ Check if combo exists
       const [existingCombo] = await db.query(
         "SELECT id FROM combo_sku WHERE combo_name = ?",
         [comboName]
@@ -333,7 +340,6 @@ export const uploadComboSkuExcel = async (req, res) => {
         newCombos++;
       }
 
-      // 2️⃣ Get existing child SKUs for this combo
       const [existingItems] = await db.query(
         `SELECT s.skuCode 
          FROM combo_sku_items csi
@@ -343,7 +349,6 @@ export const uploadComboSkuExcel = async (req, res) => {
       );
       const existingSkuCodes = existingItems.map(item => item.skuCode.trim().toUpperCase());
 
-      // 3️⃣ Loop through SKU columns (up to 10)
       for (let i = 1; i <= 10; i++) {
         const skuRaw = row[`SKU ${i}`];
         const qtyRaw = row[`Quantity ${i}`];
@@ -361,7 +366,6 @@ export const uploadComboSkuExcel = async (req, res) => {
           continue;
         }
 
-        // Check if SKU exists in main SKU table
         const [skuResult] = await db.query(
           "SELECT id FROM sku WHERE TRIM(UPPER(skuCode)) = ?",
           [skuCode]
@@ -375,7 +379,6 @@ export const uploadComboSkuExcel = async (req, res) => {
 
         const skuId = skuResult[0].id;
 
-        // Check if already added in combo
         if (!existingSkuCodes.includes(skuCode)) {
           await db.query(
             "INSERT INTO combo_sku_items (combo_sku_id, sku_id, quantity) VALUES (?, ?, ?)",
@@ -386,22 +389,33 @@ export const uploadComboSkuExcel = async (req, res) => {
           skippedSkuItems++;
         }
       }
+
+      // ✅ Send progress update every few rows
+      if (processed % 5 === 0 || processed === totalRows) {
+        const percent = Math.round((processed / totalRows) * 100);
+        res.write(JSON.stringify({ type: "progress", percent }) + "\n");
+        res.flush?.();
+      }
     }
 
-    // Delete uploaded file
     fs.unlinkSync(req.file.path);
 
-    // Send final summary
-    res.json({
-      success: true,
-      message: "Combo SKUs processed successfully",
+    // ✅ Send final summary
+    res.write(JSON.stringify({
+      type: "done",
       summary: { newCombos, existingCombos, newSkuItems, skippedSkuItems, missingSkus }
-    });
+    }) + "\n");
+
+    res.end();
 
   } catch (error) {
     console.error("Error processing Excel:", error);
-    res.status(500).json({ success: false, message: "Error processing Excel", error: error.message });
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: "Error processing Excel", error: error.message });
+    } else {
+      res.write(JSON.stringify({ type: "error", message: error.message }) + "\n");
+      res.end();
+    }
   }
 };
-
 
