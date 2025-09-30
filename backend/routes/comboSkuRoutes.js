@@ -4,7 +4,28 @@ import xlsx from "xlsx";
 import { uploadComboSkuExcel } from "../controllers/comboSkuController.js";
 
 const router = express.Router();
-const upload = multer({ dest: "uploads/" });
+// const upload = multer({ dest: "uploads/" });
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10 MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+      'application/vnd.ms-excel', // .xls
+      'text/csv', // .csv
+      'application/csv', // sometimes CSV files
+      'text/plain', // some CSV files can have this mime (depends on client)
+      'application/vnd.oasis.opendocument.spreadsheet', // .ods (OpenDocument Spreadsheet)
+    ];
+    if (!allowedTypes.includes(file.mimetype)) {
+      return cb(new Error('Only Excel, CSV, and ODS files are allowed'), false);
+    }
+    cb(null, true);
+  },
+});
 
 // 1️⃣ Upload route
 router.post("/upload", upload.single("file"), uploadComboSkuExcel);

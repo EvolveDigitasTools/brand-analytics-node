@@ -19,7 +19,29 @@ app.use(express.json());
 app.use("/api/combo-sku", comboSkuRutes);
 
 // Multer config
-const upload = multer({ dest: "uploads/" });
+// const upload = multer({ dest: "uploads/" });
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10 MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+      'application/vnd.ms-excel', // .xls
+      'text/csv', // .csv
+      'application/csv', // sometimes CSV files
+      'text/plain', // some CSV files can have this mime (depends on client)
+      'application/vnd.oasis.opendocument.spreadsheet', // .ods (OpenDocument Spreadsheet)
+    ];
+    if (!allowedTypes.includes(file.mimetype)) {
+      return cb(new Error('Only Excel, CSV, and ODS files are allowed'), false);
+    }
+    cb(null, true);
+  },
+});
+
 
 //Running port
 const PORT = process.env.PORT || 4000;
@@ -433,7 +455,7 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
 
   try {
     log(`Starting processing for file: ${req.file.path}`);
-    const workbook = xlsx.readFile(req.file.path);
+    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const sheet = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
@@ -614,7 +636,7 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
     }
 
     log(`Total successful updates: ${successfulUpdates}, Total rows processed: ${allowedSheet.length}`);
-    fs.unlink(req.file.path, () => {});
+    // fs.unlink(req.file.path, () => {});
     clearInterval(heartbeat);
     res.write(`data: ${JSON.stringify({ done: true, executionTime: Date.now() - startTime })}\n\n`);
     res.end();
@@ -646,7 +668,7 @@ app.post("/upload-amazon", upload.single("file"), async (req, res) => {
   ];
 
   try {
-    const workbook = xlsx.readFile(req.file.path);
+    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const sheet = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
@@ -760,9 +782,9 @@ app.post("/upload-amazon", upload.single("file"), async (req, res) => {
     }
 
     // cleanup
-    fs.unlink(req.file.path, (err) => {
-      if (err) console.error("File cleanup failed:", err);
-    });
+    // fs.unlink(req.file.path, (err) => {
+    //   if (err) console.error("File cleanup failed:", err);
+    // });
 
     res.json({
       message: "Amazon Inventory updated",
@@ -797,7 +819,7 @@ app.post("/upload-flipkart", upload.single("file"), async (req, res) => {
   const allowedReasons = ["Sale"];
 
   try {
-    const workbook = xlsx.readFile(req.file.path);
+    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const sheet = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
@@ -912,9 +934,9 @@ app.post("/upload-flipkart", upload.single("file"), async (req, res) => {
     }
 
     // cleanup
-    fs.unlink(req.file.path, (err) => {
-      if (err) console.error("File cleanup failed:", err);
-    });
+    // fs.unlink(req.file.path, (err) => {
+    //   if (err) console.error("File cleanup failed:", err);
+    // });
 
     res.json({
       message: "Flipkart Inventory updated",

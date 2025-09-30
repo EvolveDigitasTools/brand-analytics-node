@@ -296,7 +296,7 @@ export const uploadComboSkuExcel = async (req, res) => {
       return res.status(400).json({ success: false, message: "No file uploaded" });
     }
 
-    const workbook = xlsx.readFile(req.file.path);
+    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = xlsx.utils.sheet_to_json(sheet);
 
@@ -398,7 +398,7 @@ export const uploadComboSkuExcel = async (req, res) => {
       }
     }
 
-    fs.unlinkSync(req.file.path);
+    // fs.unlinkSync(req.file.path);
 
     // ✅ Send final summary
     res.write(JSON.stringify({
