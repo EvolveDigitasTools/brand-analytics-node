@@ -8,6 +8,7 @@ import db from "./db.js";
 import cron from "node-cron";
 import comboSkuRutes from "./routes/comboSkuRoutes.js"; //Combo Routes
 import { fetchAndStoreAmazonOrders } from "./amazon/amazonOrders.js";
+import { v4 as uuidv4 } from 'uuid'; // Generate random orderId for orders table
 
 dotenv.config();
 
@@ -431,6 +432,225 @@ app.get("/", (req, res) => {
 // });
 
 // Meesho Upload Route - Phase 8 Working - Showing all SKUs result
+// app.post("/meesho-sse", upload.single("file"), async (req, res) => {
+//   const allowedReasons = ["SHIPPED", "DELIVERED", "READY_TO_SHIP", "DOOR_STEP_EXCHANGED"];
+//   if (!req.file) {
+//     res.status(400).json({ message: "No file uploaded" });
+//     return;
+//   }
+
+//   res.setHeader("Content-Type", "text/event-stream");
+//   res.setHeader("Cache-Control", "no-cache");
+//   res.setHeader("Connection", "keep-alive");
+
+//   const startTime = Date.now();
+
+//   const log = (message) => {
+//     const timestamp = new Date().toISOString();
+//     console.log(`${timestamp} - ${message}`);
+//   };
+
+//   const heartbeat = setInterval(() => {
+//     res.write(":\n\n");
+//   }, 15000);
+
+//   try {
+//     log(`Starting processing for file: ${req.file.path}`);
+//     const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+//     const sheetName = workbook.SheetNames[0];
+//     const sheet = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+//     if (!sheet[0] || !sheet[0]["SKU"] || !sheet[0]["Reason for Credit Entry"] || !sheet[0]["Quantity"]) {
+//       log(`Error: Invalid Excel file format`);
+//       res.write(`data: ${JSON.stringify({ error: "Invalid Excel file format" })}\n\n`);
+//       clearInterval(heartbeat);
+//       return res.end();
+//     }
+
+//     const allowedSheet = sheet.filter(row => {
+//       const reason = String(row["Reason for Credit Entry"] || "")
+//         .replace(/\s+/g, ' ')
+//         .trim()
+//         .toUpperCase();
+//       const isAllowed = allowedReasons.includes(reason);
+//       if (!isAllowed) {
+//         log(`Skipping row with reason: ${reason}, SKU: ${row["SKU"]}`);
+//       }
+//       return isAllowed;
+//     });
+
+//     const totalRows = allowedSheet.length;
+//     log(`Processing ${totalRows} rows (all READY_TO_SHIP)`);
+//     if (totalRows === 0) {
+//       log(`Error: No rows with allowed reasons found`);
+//       res.write(`data: ${JSON.stringify({ error: "No rows with allowed reasons found" })}\n\n`);
+//       clearInterval(heartbeat);
+//       return res.end();
+//     }
+
+//     const [allNormalSkus] = await db.query("SELECT id, skuCode FROM sku");
+//     const normalSkuMap = {};
+//     allNormalSkus.forEach(sku => {
+//       normalSkuMap[sku.skuCode.trim().toLowerCase()] = sku;
+//     });
+
+//     let successfulUpdates = 0;
+//     for (let i = 0; i < allowedSheet.length; i++) {
+//       try {
+//         const row = allowedSheet[i];
+//         const originalSku = row["SKU"];
+//         const reason = String(row["Reason for Credit Entry"] || "").replace(/\s+/g, ' ').trim().toUpperCase();
+//         const qty = parseInt(row["Quantity"]);
+//         let resultObj = null;
+
+//         if (!originalSku || isNaN(qty) || qty <= 0) {
+//           resultObj = { uploadedSku: originalSku, error: "Invalid SKU or quantity", reason };
+//           res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
+//           log(`Row ${i + 1}: Invalid SKU or quantity for ${originalSku || 'undefined'}`);
+//           continue;
+//         }
+
+//         // Log if this SKU appears multiple times (no skipping)
+//         if (i > 0 && allowedSheet.slice(0, i).some(r => r["SKU"] === originalSku)) {
+//           log(`Duplicate SKU detected: ${originalSku} at row ${i + 1}`);
+//         }
+
+//         let skuCode = typeof originalSku === 'string' ? originalSku.trim() : String(originalSku);
+//         let multiplier = 1;
+//         const pkMatch = skuCode.match(/-PK(\d+)$/i);
+//         if (pkMatch) {
+//           multiplier = parseInt(pkMatch[1], 10);
+//           skuCode = skuCode.replace(/-PK\d+$/i, "").trim();
+//         }
+
+//         const [comboRows] = await db.query(
+//           `SELECT csi.sku_id, csi.quantity 
+//            FROM combo_sku cs
+//            JOIN combo_sku_items csi ON cs.id = csi.combo_sku_id
+//            WHERE TRIM(LOWER(cs.combo_name)) = LOWER(?)`,
+//           [skuCode]
+//         );
+
+//         let updatePerformed = false;
+//         if (comboRows.length > 0) {
+//           for (const child of comboRows) {
+//             const childSkuId = child.sku_id;
+//             const deductQtyChild = qty * child.quantity;
+
+//             let [invRows] = await db.query(
+//               "SELECT id, quantity FROM inventory WHERE skuId = ? LIMIT 1",
+//               [childSkuId]
+//             );
+
+//             if (invRows.length === 0) {
+//               const [insertInv] = await db.query(
+//                 "INSERT INTO inventory (skuId, quantity, inventoryUpdatedAt) VALUES (?, 0, NOW())",
+//                 [childSkuId]
+//               );
+//               invRows = [{ id: insertInv.insertId, quantity: 0 }];
+//             }
+
+//             const inventory = invRows[0];
+//             const newQty = Math.max(0, inventory.quantity - deductQtyChild);
+
+//             await db.query(
+//               "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
+//               [newQty, inventory.id]
+//             );
+
+//             resultObj = {
+//               uploadedSku: originalSku,
+//               comboSku: originalSku,
+//               childSku: childSkuId,
+//               oldQty: inventory.quantity,
+//               deducted: deductQtyChild,
+//               newQty,
+//               reason,
+//             };
+
+//             res.write(`data: ${JSON.stringify(resultObj)}\n\n`); // Send each update individually
+//             updatePerformed = true;
+//           }
+//         } else {
+//           const normalSku = normalSkuMap[skuCode.toLowerCase()];
+//           if (normalSku) {
+//             const skuId = normalSku.id;
+//             const deductQty = qty * multiplier;
+
+//             let [invRows] = await db.query(
+//               "SELECT id, quantity FROM inventory WHERE skuId = ? LIMIT 1",
+//               [skuId]
+//             );
+
+//             if (invRows.length === 0) {
+//               const [insertInv] = await db.query(
+//                 "INSERT INTO inventory (skuId, quantity, inventoryUpdatedAt) VALUES (?, 0, NOW())",
+//                 [skuId]
+//               );
+//               invRows = [{ id: insertInv.insertId, quantity: 0 }];
+//             }
+
+//             const inventory = invRows[0];
+//             const newQty = Math.max(0, inventory.quantity - deductQty);
+
+//             await db.query(
+//               "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
+//               [newQty, inventory.id]
+//             );
+
+//             resultObj = {
+//               uploadedSku: originalSku,
+//               type: "normal",
+//               skuCode: normalSku.skuCode,
+//               oldQty: inventory.quantity,
+//               deducted: deductQty,
+//               newQty,
+//               reason,
+//             };
+
+//             res.write(`data: ${JSON.stringify(resultObj)}\n\n`); // Send each update individually
+//             updatePerformed = true;
+//           } else {
+//             resultObj = { uploadedSku: originalSku, error: "SKU not found (normal or combo)", reason };
+//             res.write(`data: ${JSON.stringify(resultObj)}\n\n`); // Send error individually
+//             log(`Row ${i + 1}: Failed to process SKU ${originalSku}`);
+//           }
+//         }
+
+//         if (updatePerformed) {
+//           successfulUpdates++;
+//           log(`Row ${i + 1}: Successfully updated ${originalSku}`);
+//         }
+
+//         const progressPercent = Math.round(((i + 1) / totalRows) * 100);
+//         res.write(`data: ${JSON.stringify({ progressPercent })}\n\n`); // Send progress per row
+//       } catch (error) {
+//         const row = allowedSheet[i] || {};
+//         const originalSku = row["SKU"];
+//         const reason = String(row["Reason for Credit Entry"] || "").replace(/\s+/g, ' ').trim().toUpperCase();
+//         log(`Error processing row ${i + 1}: ${error.message}, SKU: ${originalSku}, Reason: ${reason}`);
+//         const resultObj = { uploadedSku: originalSku, error: `Processing error: ${error.message}`, reason };
+//         res.write(`data: ${JSON.stringify(resultObj)}\n\n`); // Send error individually
+//         const progressPercent = Math.round(((i + 1) / totalRows) * 100);
+//         res.write(`data: ${JSON.stringify({ progressPercent })}\n\n`);
+//       }
+//     }
+
+//     log(`Total successful updates: ${successfulUpdates}, Total rows processed: ${allowedSheet.length}`);
+//     // fs.unlink(req.file.path, () => {});
+//     clearInterval(heartbeat);
+//     res.write(`data: ${JSON.stringify({ done: true, executionTime: Date.now() - startTime })}\n\n`);
+//     res.end();
+
+//   } catch (err) {
+//     log(`Critical error in /meesho-sse: ${err.message}`);
+//     clearInterval(heartbeat);
+//     res.write(`data: ${JSON.stringify({ error: "Something went wrong" })}\n\n`);
+//     res.end();
+//   }
+// });
+
+// Meesho Upload Route - Phase 9 Working - Save upload result in DB for Sale Last 15 Days
 app.post("/meesho-sse", upload.single("file"), async (req, res) => {
   const allowedReasons = ["SHIPPED", "DELIVERED", "READY_TO_SHIP", "DOOR_STEP_EXCHANGED"];
   if (!req.file) {
@@ -557,6 +777,19 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
               [newQty, inventory.id]
             );
 
+            // Insert order with generated orderId
+            const orderDate = new Date();
+            const generatedOrderId = uuidv4(); // Generate a unique orderId
+            const [orderResult] = await db.query(
+              "INSERT INTO orders (orderDateTime, orderStatus, marketplace, orderId) VALUES (?, ?, ?, ?)",
+              [orderDate, reason, "MEESHO", generatedOrderId]
+            );
+            const orderId = orderResult.insertId;
+            await db.query(
+              "INSERT INTO order_items (order_id, sku_id, quantity) VALUES (?, ?, ?)",
+              [orderId, childSkuId, deductQtyChild]
+            );
+
             resultObj = {
               uploadedSku: originalSku,
               comboSku: originalSku,
@@ -595,6 +828,19 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
             await db.query(
               "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
               [newQty, inventory.id]
+            );
+
+            // Insert order with generated orderId
+            const orderDate = new Date();
+            const generatedOrderId = uuidv4(); // Generate a unique orderId
+            const [orderResult] = await db.query(
+              "INSERT INTO orders (orderDateTime, orderStatus, marketplace, orderId) VALUES (?, ?, ?, ?)",
+              [orderDate, reason, "MEESHO", generatedOrderId]
+            );
+            const orderId = orderResult.insertId;
+            await db.query(
+              "INSERT INTO order_items (order_id, sku_id, quantity) VALUES (?, ?, ?)",
+              [orderId, skuId, deductQty]
             );
 
             resultObj = {
@@ -648,6 +894,48 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
     res.end();
   }
 });
+
+
+// New endpoint to fetch sales for the last 15 days
+app.get('/sales-last-15-days', async (req, res) => {
+  const { vendorCode } = req.query; // Get vendorCode from query params
+
+  try {
+    let query = `
+      SELECT s.skuCode, COALESCE(SUM(oi.quantity), 0) AS salesLast15Days
+      FROM orders o
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      LEFT JOIN sku s ON oi.sku_id = s.id
+      WHERE o.orderDateTime >= DATE_SUB(NOW(), INTERVAL 15 DAY)
+      AND o.orderStatus IN ('SHIPPED', 'DELIVERED', 'READY_TO_SHIP', 'DOOR_STEP_EXCHANGED')
+    `;
+
+    const params = [];
+    if (vendorCode) {
+      query += ' AND s.vendorId = ?'; // Filter by vendorId from sku table
+      params.push(vendorCode);
+    }
+
+    query += ' GROUP BY s.skuCode';
+
+    const [rows] = await db.query(query, params);
+
+    res.json({
+      success: true,
+      data: rows.map(row => ({
+        skuCode: row.skuCode,
+        salesLast15Days: row.salesLast15Days
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching sales last 15 days:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch sales data'
+    });
+  }
+});
+
 
 // Amazon Sheet Upload
 app.post("/upload-amazon", upload.single("file"), async (req, res) => {
