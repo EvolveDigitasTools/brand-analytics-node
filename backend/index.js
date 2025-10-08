@@ -895,8 +895,576 @@ app.get("/", (req, res) => {
 //   }
 // });
 
-
 // Meesho Upload Route - Phase 10 Testin - with check all slots of sku
+// app.post("/meesho-sse", upload.single("file"), async (req, res) => {
+//   const allowedReasons = ["SHIPPED", "DELIVERED", "READY_TO_SHIP", "DOOR_STEP_EXCHANGED"];
+//   if (!req.file) {
+//     res.status(400).json({ message: "No file uploaded" });
+//     return;
+//   }
+
+//   res.setHeader("Content-Type", "text/event-stream");
+//   res.setHeader("Cache-Control", "no-cache");
+//   res.setHeader("Connection", "keep-alive");
+
+//   const startTime = Date.now();
+
+//   const log = (message) => {
+//     const timestamp = new Date().toISOString();
+//     console.log(`${timestamp} - ${message}`);
+//   };
+
+//   const heartbeat = setInterval(() => {
+//     res.write(":\n\n");
+//   }, 15000);
+
+//   try {
+//     log(`Starting processing for file: ${req.file.path}`);
+//     const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
+//     const sheetName = workbook.SheetNames[0];
+//     const sheet = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+//     if (!sheet[0] || !sheet[0]["SKU"] || !sheet[0]["Reason for Credit Entry"] || !sheet[0]["Quantity"]) {
+//       log(`Error: Invalid Excel file format`);
+//       res.write(`data: ${JSON.stringify({ error: "Invalid Excel file format" })}\n\n`);
+//       clearInterval(heartbeat);
+//       return res.end();
+//     }
+
+//     const allowedSheet = sheet.filter((row) => {
+//       const reason = String(row["Reason for Credit Entry"] || "")
+//         .replace(/\s+/g, " ")
+//         .trim()
+//         .toUpperCase();
+//       const isAllowed = allowedReasons.includes(reason);
+//       if (!isAllowed) log(`Skipping row with reason: ${reason}, SKU: ${row["SKU"]}`);
+//       return isAllowed;
+//     });
+
+//     const totalRows = allowedSheet.length;
+//     log(`Processing ${totalRows} rows`);
+//     if (totalRows === 0) {
+//       log(`Error: No rows with allowed reasons found`);
+//       res.write(`data: ${JSON.stringify({ error: "No rows with allowed reasons found" })}\n\n`);
+//       clearInterval(heartbeat);
+//       return res.end();
+//     }
+
+//     const [allNormalSkus] = await db.query("SELECT id, skuCode FROM sku");
+//     const normalSkuMap = {};
+//     allNormalSkus.forEach((sku) => {
+//       normalSkuMap[sku.skuCode.trim().toLowerCase()] = sku;
+//     });
+
+//     let successfulUpdates = 0;
+
+//     for (let i = 0; i < allowedSheet.length; i++) {
+//       try {
+//         const row = allowedSheet[i];
+//         const originalSku = row["SKU"];
+//         const reason = String(row["Reason for Credit Entry"] || "").replace(/\s+/g, " ").trim().toUpperCase();
+//         const qty = parseInt(row["Quantity"]);
+//         let resultObj = null;
+
+//         if (!originalSku || isNaN(qty) || qty <= 0) {
+//           resultObj = { uploadedSku: originalSku, error: "Invalid SKU or quantity", reason };
+//           res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
+//           log(`Row ${i + 1}: Invalid SKU or quantity for ${originalSku || "undefined"}`);
+//           continue;
+//         }
+
+//         // Handle PK multipliers
+//         let skuCode = String(originalSku).trim();
+//         let multiplier = 1;
+//         const pkMatch = skuCode.match(/-PK(\d+)$/i);
+//         if (pkMatch) {
+//           multiplier = parseInt(pkMatch[1], 10);
+//           skuCode = skuCode.replace(/-PK\d+$/i, "").trim();
+//         }
+
+//         // Check if SKU is a combo
+//         const [comboRows] = await db.query(
+//           `SELECT csi.sku_id, csi.quantity 
+//            FROM combo_sku cs
+//            JOIN combo_sku_items csi ON cs.id = csi.combo_sku_id
+//            WHERE TRIM(LOWER(cs.combo_name)) = LOWER(?)`,
+//           [skuCode]
+//         );
+
+//         let updatePerformed = false;
+
+//         if (comboRows.length > 0) {
+//           // Process combo SKUs
+//           for (const child of comboRows) {
+//             const childSkuId = child.sku_id;
+//             const deductQtyChild = qty * child.quantity;
+
+//             // FIFO deduction for child SKU
+//             let [invRows] = await db.query(
+//               "SELECT id, quantity, expiryDate FROM inventory WHERE skuId = ? AND quantity > 0 ORDER BY expiryDate ASC",
+//               [childSkuId]
+//             );
+
+//             if (invRows.length === 0) {
+//               const [insertInv] = await db.query(
+//                 "INSERT INTO inventory (skuId, quantity, inventoryUpdatedAt) VALUES (?, 0, NOW())",
+//                 [childSkuId]
+//               );
+//               invRows = [{ id: insertInv.insertId, quantity: 0 }];
+//             }
+
+//             let remainingToDeduct = deductQtyChild;
+//             const totalOldQty = invRows.reduce((sum, r) => sum + r.quantity, 0);
+
+//             for (const slot of invRows) {
+//               if (remainingToDeduct <= 0) break;
+
+//               const deductFromThis = Math.min(slot.quantity, remainingToDeduct);
+//               const newQty = slot.quantity - deductFromThis;
+
+//               await db.query(
+//                 "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
+//                 [newQty, slot.id]
+//               );
+
+//               remainingToDeduct -= deductFromThis;
+//             }
+
+//             // Recompute total
+//             let [updatedRows] = await db.query(
+//               "SELECT SUM(quantity) as totalQty FROM inventory WHERE skuId = ?",
+//               [childSkuId]
+//             );
+//             const newTotalQty = updatedRows[0].totalQty || 0;
+
+//             // Insert order
+//             const orderDate = new Date();
+//             const generatedOrderId = uuidv4();
+//             const [orderResult] = await db.query(
+//               "INSERT INTO orders (orderDateTime, orderStatus, marketplace, orderId) VALUES (?, ?, ?, ?)",
+//               [orderDate, reason, "MEESHO", generatedOrderId]
+//             );
+//             const orderId = orderResult.insertId;
+//             await db.query(
+//               "INSERT INTO order_items (order_id, sku_id, quantity) VALUES (?, ?, ?)",
+//               [orderId, childSkuId, deductQtyChild]
+//             );
+
+//             resultObj = {
+//               uploadedSku: originalSku,
+//               comboSku: originalSku,
+//               childSku: childSkuId,
+//               oldQty: totalOldQty,
+//               deducted: deductQtyChild,
+//               newQty: newTotalQty,
+//               reason,
+//             };
+//             res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
+//             updatePerformed = true;
+//           }
+//         } else {
+//           // Normal SKU FIFO deduction
+//           const normalSku = normalSkuMap[skuCode.toLowerCase()];
+//           if (normalSku) {
+//             const skuId = normalSku.id;
+//             const deductQtyTotal = qty * multiplier;
+
+//             let [invRows] = await db.query(
+//               "SELECT id, quantity, expiryDate FROM inventory WHERE skuId = ? AND quantity > 0 ORDER BY expiryDate ASC",
+//               [skuId]
+//             );
+
+//             if (invRows.length === 0) {
+//               const [insertInv] = await db.query(
+//                 "INSERT INTO inventory (skuId, quantity, inventoryUpdatedAt) VALUES (?, 0, NOW())",
+//                 [skuId]
+//               );
+//               invRows = [{ id: insertInv.insertId, quantity: 0 }];
+//             }
+
+//             let remainingToDeduct = deductQtyTotal;
+//             const totalOldQty = invRows.reduce((sum, r) => sum + r.quantity, 0);
+
+//             for (const slot of invRows) {
+//               if (remainingToDeduct <= 0) break;
+
+//               const deductFromThis = Math.min(slot.quantity, remainingToDeduct);
+//               const newQty = slot.quantity - deductFromThis;
+
+//               await db.query(
+//                 "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
+//                 [newQty, slot.id]
+//               );
+
+//               remainingToDeduct -= deductFromThis;
+//             }
+
+//             let [updatedRows] = await db.query(
+//               "SELECT SUM(quantity) as totalQty FROM inventory WHERE skuId = ?",
+//               [skuId]
+//             );
+//             const newTotalQty = updatedRows[0].totalQty || 0;
+
+//             const orderDate = new Date();
+//             const generatedOrderId = uuidv4();
+//             const [orderResult] = await db.query(
+//               "INSERT INTO orders (orderDateTime, orderStatus, marketplace, orderId) VALUES (?, ?, ?, ?)",
+//               [orderDate, reason, "MEESHO", generatedOrderId]
+//             );
+//             const orderId = orderResult.insertId;
+//             await db.query(
+//               "INSERT INTO order_items (order_id, sku_id, quantity) VALUES (?, ?, ?)",
+//               [orderId, skuId, deductQtyTotal]
+//             );
+
+//             resultObj = {
+//               uploadedSku: originalSku,
+//               type: "normal",
+//               skuCode: normalSku.skuCode,
+//               oldQty: totalOldQty,
+//               deducted: deductQtyTotal,
+//               newQty: newTotalQty,
+//               reason,
+//             };
+//             res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
+//             updatePerformed = true;
+//           } else {
+//             resultObj = { uploadedSku: originalSku, error: "SKU not found (normal or combo)", reason };
+//             res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
+//             log(`Row ${i + 1}: Failed to process SKU ${originalSku}`);
+//           }
+//         }
+
+//         if (updatePerformed) {
+//           successfulUpdates++;
+//           log(`Row ${i + 1}: Successfully updated ${originalSku}`);
+//         }
+
+//         const progressPercent = Math.round(((i + 1) / totalRows) * 100);
+//         res.write(`data: ${JSON.stringify({ progressPercent })}\n\n`);
+//       } catch (error) {
+//         const row = allowedSheet[i] || {};
+//         const originalSku = row["SKU"];
+//         const reason = String(row["Reason for Credit Entry"] || "").replace(/\s+/g, " ").trim().toUpperCase();
+//         log(`Error processing row ${i + 1}: ${error.message}, SKU: ${originalSku}, Reason: ${reason}`);
+//         const resultObj = { uploadedSku: originalSku, error: `Processing error: ${error.message}`, reason };
+//         res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
+//         const progressPercent = Math.round(((i + 1) / totalRows) * 100);
+//         res.write(`data: ${JSON.stringify({ progressPercent })}\n\n`);
+//       }
+//     }
+
+//     log(`Total successful updates: ${successfulUpdates}, Total rows processed: ${allowedSheet.length}`);
+//     clearInterval(heartbeat);
+//     res.write(`data: ${JSON.stringify({ done: true, executionTime: Date.now() - startTime })}\n\n`);
+//     res.end();
+//   } catch (err) {
+//     log(`Critical error in /meesho-sse: ${err.message}`);
+//     clearInterval(heartbeat);
+//     res.write(`data: ${JSON.stringify({ error: "Something went wrong" })}\n\n`);
+//     res.end();
+//   }
+// });
+
+// Meesho Upload Route - Phase 11 Working - with order update only one time
+// app.post("/meesho-sse", upload.single("file"), async (req, res) => {
+//   const allowedReasons = ["SHIPPED", "DELIVERED", "READY_TO_SHIP", "DOOR_STEP_EXCHANGED"];
+//   if (!req.file) {
+//     res.status(400).json({ message: "No file uploaded" });
+//     return;
+//   }
+
+//   res.setHeader("Content-Type", "text/event-stream");
+//   res.setHeader("Cache-Control", "no-cache");
+//   res.setHeader("Connection", "keep-alive");
+
+//   const startTime = Date.now();
+
+//   const log = (message) => {
+//     const timestamp = new Date().toISOString();
+//     console.log(`${timestamp} - ${message}`);
+//   };
+
+//   const heartbeat = setInterval(() => {
+//     res.write(":\n\n");
+//   }, 15000);
+
+//   try {
+//     log(`Starting processing for file: ${req.file.path}`);
+//     const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
+//     const sheetName = workbook.SheetNames[0];
+//     const sheet = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+//     if (!sheet[0] || !sheet[0]["SKU"] || !sheet[0]["Reason for Credit Entry"] || !sheet[0]["Quantity"] || !sheet[0]["Sub Order No"]) {
+//       log(`Error: Invalid Excel file format - missing Sub Order No`);
+//       res.write(`data: ${JSON.stringify({ error: "Invalid Excel file format - missing Sub Order No" })}\n\n`);
+//       clearInterval(heartbeat);
+//       return res.end();
+//     }
+
+//     const allowedSheet = sheet.filter((row) => {
+//       const reason = String(row["Reason for Credit Entry"] || "")
+//         .replace(/\s+/g, " ")
+//         .trim()
+//         .toUpperCase();
+//       const isAllowed = allowedReasons.includes(reason);
+//       if (!isAllowed) log(`Skipping row with reason: ${reason}, SKU: ${row["SKU"]}`);
+//       return isAllowed;
+//     });
+
+//     const totalRows = allowedSheet.length;
+//     log(`Processing ${totalRows} rows`);
+//     if (totalRows === 0) {
+//       log(`Error: No rows with allowed reasons found`);
+//       res.write(`data: ${JSON.stringify({ error: "No rows with allowed reasons found" })}\n\n`);
+//       clearInterval(heartbeat);
+//       return res.end();
+//     }
+
+//     // Check for existing Sub Order No for the current date
+//     const subOrderNos = [...new Set(allowedSheet.map(row => String(row["Sub Order No"]).trim()))];
+//     const [existingOrders] = await db.query(
+//       "SELECT orderId FROM orders WHERE DATE(orderDateTime) = CURDATE() AND orderId IN (?)",
+//       [subOrderNos]
+//     );
+//     const existingSubOrderNos = new Set(existingOrders.map(row => row.orderId));
+
+//     const [allNormalSkus] = await db.query("SELECT id, skuCode FROM sku");
+//     const normalSkuMap = {};
+//     allNormalSkus.forEach((sku) => {
+//       normalSkuMap[sku.skuCode.trim().toLowerCase()] = sku;
+//     });
+
+//     let successfulUpdates = 0;
+//     const orderMap = new Map(); // Map to store order_id by Sub Order No
+
+//     for (let i = 0; i < allowedSheet.length; i++) {
+//       try {
+//         const row = allowedSheet[i];
+//         const originalSku = row["SKU"];
+//         const reason = String(row["Reason for Credit Entry"] || "").replace(/\s+/g, " ").trim().toUpperCase();
+//         const qty = parseInt(row["Quantity"]);
+//         const subOrderNo = String(row["Sub Order No"]).trim();
+//         let resultObj = null;
+
+//         if (!originalSku || isNaN(qty) || qty <= 0) {
+//           resultObj = { uploadedSku: originalSku, error: "Invalid SKU or quantity", reason };
+//           res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
+//           log(`Row ${i + 1}: Invalid SKU or quantity for ${originalSku || "undefined"}`);
+//           continue;
+//         }
+
+//         // Skip if Sub Order No already exists for today
+//         if (existingSubOrderNos.has(subOrderNo)) {
+//           resultObj = { uploadedSku: originalSku, skipped: true, reason: "Order already updated" };
+//           res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
+//           log(`Row ${i + 1}: Skipped ${originalSku} - Sub Order No ${subOrderNo} already updated`);
+//           continue;
+//         }
+
+//         // Handle PK multipliers
+//         let skuCode = String(originalSku).trim();
+//         let multiplier = 1;
+//         const pkMatch = skuCode.match(/-PK(\d+)$/i);
+//         if (pkMatch) {
+//           multiplier = parseInt(pkMatch[1], 10);
+//           skuCode = skuCode.replace(/-PK\d+$/i, "").trim();
+//         }
+
+//         // Check if SKU is a combo
+//         const [comboRows] = await db.query(
+//           `SELECT csi.sku_id, csi.quantity 
+//            FROM combo_sku cs
+//            JOIN combo_sku_items csi ON cs.id = csi.combo_sku_id
+//            WHERE TRIM(LOWER(cs.combo_name)) = LOWER(?)`,
+//           [skuCode]
+//         );
+
+//         let updatePerformed = false;
+
+//         if (comboRows.length > 0) {
+//           // Process combo SKUs
+//           for (const child of comboRows) {
+//             const childSkuId = child.sku_id;
+//             const deductQtyChild = qty * child.quantity;
+
+//             // FIFO deduction for child SKU
+//             let [invRows] = await db.query(
+//               "SELECT id, quantity, expiryDate FROM inventory WHERE skuId = ? AND quantity > 0 ORDER BY expiryDate ASC",
+//               [childSkuId]
+//             );
+
+//             if (invRows.length === 0) {
+//               const [insertInv] = await db.query(
+//                 "INSERT INTO inventory (skuId, quantity, inventoryUpdatedAt) VALUES (?, 0, NOW())",
+//                 [childSkuId]
+//               );
+//               invRows = [{ id: insertInv.insertId, quantity: 0 }];
+//             }
+
+//             let remainingToDeduct = deductQtyChild;
+//             const totalOldQty = invRows.reduce((sum, r) => sum + r.quantity, 0);
+
+//             for (const slot of invRows) {
+//               if (remainingToDeduct <= 0) break;
+
+//               const deductFromThis = Math.min(slot.quantity, remainingToDeduct);
+//               const newQty = slot.quantity - deductFromThis;
+
+//               await db.query(
+//                 "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
+//                 [newQty, slot.id]
+//               );
+
+//               remainingToDeduct -= deductFromThis;
+//             }
+
+//             // Recompute total
+//             let [updatedRows] = await db.query(
+//               "SELECT SUM(quantity) as totalQty FROM inventory WHERE skuId = ?",
+//               [childSkuId]
+//             );
+//             const newTotalQty = updatedRows[0].totalQty || 0;
+
+//             // Get or create order_id for this Sub Order No
+//             let orderId = orderMap.get(subOrderNo);
+//             if (!orderId) {
+//               const orderDate = new Date();
+//               const [orderResult] = await db.query(
+//                 "INSERT INTO orders (orderDateTime, orderStatus, marketplace, orderId) VALUES (?, ?, ?, ?)",
+//                 [orderDate, reason, "MEESHO", subOrderNo]
+//               );
+//               orderId = orderResult.insertId;
+//               orderMap.set(subOrderNo, orderId);
+//             }
+
+//             await db.query(
+//               "INSERT INTO order_items (order_id, sku_id, quantity) VALUES (?, ?, ?)",
+//               [orderId, childSkuId, deductQtyChild]
+//             );
+
+//             resultObj = {
+//               uploadedSku: originalSku,
+//               comboSku: originalSku,
+//               childSku: childSkuId,
+//               oldQty: totalOldQty,
+//               deducted: deductQtyChild,
+//               newQty: newTotalQty,
+//               reason,
+//             };
+//             res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
+//             updatePerformed = true;
+//           }
+//         } else {
+//           // Normal SKU FIFO deduction
+//           const normalSku = normalSkuMap[skuCode.toLowerCase()];
+//           if (normalSku) {
+//             const skuId = normalSku.id;
+//             const deductQtyTotal = qty * multiplier;
+
+//             let [invRows] = await db.query(
+//               "SELECT id, quantity, expiryDate FROM inventory WHERE skuId = ? AND quantity > 0 ORDER BY expiryDate ASC",
+//               [skuId]
+//             );
+
+//             if (invRows.length === 0) {
+//               const [insertInv] = await db.query(
+//                 "INSERT INTO inventory (skuId, quantity, inventoryUpdatedAt) VALUES (?, 0, NOW())",
+//                 [skuId]
+//               );
+//               invRows = [{ id: insertInv.insertId, quantity: 0 }];
+//             }
+
+//             let remainingToDeduct = deductQtyTotal;
+//             const totalOldQty = invRows.reduce((sum, r) => sum + r.quantity, 0);
+
+//             for (const slot of invRows) {
+//               if (remainingToDeduct <= 0) break;
+
+//               const deductFromThis = Math.min(slot.quantity, remainingToDeduct);
+//               const newQty = slot.quantity - deductFromThis;
+
+//               await db.query(
+//                 "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
+//                 [newQty, slot.id]
+//               );
+
+//               remainingToDeduct -= deductFromThis;
+//             }
+
+//             let [updatedRows] = await db.query(
+//               "SELECT SUM(quantity) as totalQty FROM inventory WHERE skuId = ?",
+//               [skuId]
+//             );
+//             const newTotalQty = updatedRows[0].totalQty || 0;
+
+//             // Get or create order_id for this Sub Order No
+//             let orderId = orderMap.get(subOrderNo);
+//             if (!orderId) {
+//               const orderDate = new Date();
+//               const [orderResult] = await db.query(
+//                 "INSERT INTO orders (orderDateTime, orderStatus, marketplace, orderId) VALUES (?, ?, ?, ?)",
+//                 [orderDate, reason, "MEESHO", subOrderNo]
+//               );
+//               orderId = orderResult.insertId;
+//               orderMap.set(subOrderNo, orderId);
+//             }
+
+//             await db.query(
+//               "INSERT INTO order_items (order_id, sku_id, quantity) VALUES (?, ?, ?)",
+//               [orderId, skuId, deductQtyTotal]
+//             );
+
+//             resultObj = {
+//               uploadedSku: originalSku,
+//               type: "normal",
+//               skuCode: normalSku.skuCode,
+//               oldQty: totalOldQty,
+//               deducted: deductQtyTotal,
+//               newQty: newTotalQty,
+//               reason,
+//             };
+//             res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
+//             updatePerformed = true;
+//           } else {
+//             resultObj = { uploadedSku: originalSku, error: "SKU not found (normal or combo)", reason };
+//             res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
+//             log(`Row ${i + 1}: Failed to process SKU ${originalSku}`);
+//           }
+//         }
+
+//         if (updatePerformed) {
+//           successfulUpdates++;
+//           log(`Row ${i + 1}: Successfully updated ${originalSku}`);
+//         }
+
+//         const progressPercent = Math.round(((i + 1) / totalRows) * 100);
+//         res.write(`data: ${JSON.stringify({ progressPercent })}\n\n`);
+//       } catch (error) {
+//         const row = allowedSheet[i] || {};
+//         const originalSku = row["SKU"];
+//         const reason = String(row["Reason for Credit Entry"] || "").replace(/\s+/g, " ").trim().toUpperCase();
+//         log(`Error processing row ${i + 1}: ${error.message}, SKU: ${originalSku}, Reason: ${reason}`);
+//         const resultObj = { uploadedSku: originalSku, error: `Processing error: ${error.message}`, reason };
+//         res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
+//         const progressPercent = Math.round(((i + 1) / totalRows) * 100);
+//         res.write(`data: ${JSON.stringify({ progressPercent })}\n\n`);
+//       }
+//     }
+
+//     log(`Total successful updates: ${successfulUpdates}, Total rows processed: ${allowedSheet.length}`);
+//     clearInterval(heartbeat);
+//     res.write(`data: ${JSON.stringify({ done: true, executionTime: Date.now() - startTime })}\n\n`);
+//     res.end();
+//   } catch (err) {
+//     log(`Critical error in /meesho-sse: ${err.message}`);
+//     clearInterval(heartbeat);
+//     res.write(`data: ${JSON.stringify({ error: "Something went wrong" })}\n\n`);
+//     res.end();
+//   }
+// });
+
+// Meesho Upload Route - Phase 12 Working - Upload Combo SKU - with partial handling
 app.post("/meesho-sse", upload.single("file"), async (req, res) => {
   const allowedReasons = ["SHIPPED", "DELIVERED", "READY_TO_SHIP", "DOOR_STEP_EXCHANGED"];
   if (!req.file) {
@@ -925,9 +1493,9 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
     const sheetName = workbook.SheetNames[0];
     const sheet = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-    if (!sheet[0] || !sheet[0]["SKU"] || !sheet[0]["Reason for Credit Entry"] || !sheet[0]["Quantity"]) {
-      log(`Error: Invalid Excel file format`);
-      res.write(`data: ${JSON.stringify({ error: "Invalid Excel file format" })}\n\n`);
+    if (!sheet[0] || !sheet[0]["SKU"] || !sheet[0]["Reason for Credit Entry"] || !sheet[0]["Quantity"] || !sheet[0]["Sub Order No"]) {
+      log(`Error: Invalid Excel file format - missing Sub Order No`);
+      res.write(`data: ${JSON.stringify({ error: "Invalid Excel file format - missing Sub Order No" })}\n\n`);
       clearInterval(heartbeat);
       return res.end();
     }
@@ -951,6 +1519,14 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
       return res.end();
     }
 
+    // Check for existing Sub Order No for the current date
+    const subOrderNos = [...new Set(allowedSheet.map(row => String(row["Sub Order No"]).trim()))];
+    const [existingOrders] = await db.query(
+      "SELECT orderId FROM orders WHERE DATE(orderDateTime) = CURDATE() AND orderId IN (?)",
+      [subOrderNos]
+    );
+    const existingSubOrderNos = new Set(existingOrders.map(row => row.orderId));
+
     const [allNormalSkus] = await db.query("SELECT id, skuCode FROM sku");
     const normalSkuMap = {};
     allNormalSkus.forEach((sku) => {
@@ -958,6 +1534,7 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
     });
 
     let successfulUpdates = 0;
+    const orderMap = new Map(); // Map to store order_id by Sub Order No
 
     for (let i = 0; i < allowedSheet.length; i++) {
       try {
@@ -965,12 +1542,21 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
         const originalSku = row["SKU"];
         const reason = String(row["Reason for Credit Entry"] || "").replace(/\s+/g, " ").trim().toUpperCase();
         const qty = parseInt(row["Quantity"]);
+        const subOrderNo = String(row["Sub Order No"]).trim();
         let resultObj = null;
 
         if (!originalSku || isNaN(qty) || qty <= 0) {
           resultObj = { uploadedSku: originalSku, error: "Invalid SKU or quantity", reason };
           res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
           log(`Row ${i + 1}: Invalid SKU or quantity for ${originalSku || "undefined"}`);
+          continue;
+        }
+
+        // Skip if Sub Order No already exists for today
+        if (existingSubOrderNos.has(subOrderNo)) {
+          resultObj = { uploadedSku: originalSku, skipped: true, reason: "Order already updated" };
+          res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
+          log(`Row ${i + 1}: Skipped ${originalSku} - Sub Order No ${subOrderNo} already updated`);
           continue;
         }
 
@@ -983,7 +1569,7 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
           skuCode = skuCode.replace(/-PK\d+$/i, "").trim();
         }
 
-        // Check if SKU is a combo
+        // -------- COMBO SKU LOGIC START --------
         const [comboRows] = await db.query(
           `SELECT csi.sku_id, csi.quantity 
            FROM combo_sku cs
@@ -995,23 +1581,31 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
         let updatePerformed = false;
 
         if (comboRows.length > 0) {
-          // Process combo SKUs
           for (const child of comboRows) {
             const childSkuId = child.sku_id;
             const deductQtyChild = qty * child.quantity;
 
-            // FIFO deduction for child SKU
+            // Check inventory
             let [invRows] = await db.query(
-              "SELECT id, quantity, expiryDate FROM inventory WHERE skuId = ? AND quantity > 0 ORDER BY expiryDate ASC",
+              "SELECT id, quantity, expiryDate FROM inventory WHERE skuId = ? ORDER BY expiryDate ASC",
               [childSkuId]
             );
 
-            if (invRows.length === 0) {
-              const [insertInv] = await db.query(
-                "INSERT INTO inventory (skuId, quantity, inventoryUpdatedAt) VALUES (?, 0, NOW())",
-                [childSkuId]
-              );
-              invRows = [{ id: insertInv.insertId, quantity: 0 }];
+            if (!invRows.length || invRows[0].quantity <= 0) {
+              sendProgress(`⚠️ Skipping child SKU ${childSkuId} — no inventory`);
+              continue;
+            }
+
+            // Skip if already processed in previous upload for same combo & subOrderNo
+            const [existingItems] = await db.query(
+              `SELECT oi.id FROM order_items oi
+               JOIN orders o ON o.id = oi.order_id
+               WHERE o.orderId = ? AND oi.sku_id = ?`,
+              [subOrderNo, childSkuId]
+            );
+            if (existingItems.length > 0) {
+              sendProgress(`⚠️ Skipping child SKU ${childSkuId} — already processed`);
+              continue;
             }
 
             let remainingToDeduct = deductQtyChild;
@@ -1019,33 +1613,30 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
 
             for (const slot of invRows) {
               if (remainingToDeduct <= 0) break;
-
               const deductFromThis = Math.min(slot.quantity, remainingToDeduct);
               const newQty = slot.quantity - deductFromThis;
-
-              await db.query(
-                "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
-                [newQty, slot.id]
-              );
-
+              await db.query("UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?", [newQty, slot.id]);
               remainingToDeduct -= deductFromThis;
             }
 
-            // Recompute total
             let [updatedRows] = await db.query(
               "SELECT SUM(quantity) as totalQty FROM inventory WHERE skuId = ?",
               [childSkuId]
             );
             const newTotalQty = updatedRows[0].totalQty || 0;
 
-            // Insert order
-            const orderDate = new Date();
-            const generatedOrderId = uuidv4();
-            const [orderResult] = await db.query(
-              "INSERT INTO orders (orderDateTime, orderStatus, marketplace, orderId) VALUES (?, ?, ?, ?)",
-              [orderDate, reason, "MEESHO", generatedOrderId]
-            );
-            const orderId = orderResult.insertId;
+            // Create orderId per child
+            let orderId = orderMap.get(subOrderNo);
+            if (!orderId) {
+              const orderDate = new Date();
+              const [orderResult] = await db.query(
+                "INSERT INTO orders (orderDateTime, orderStatus, marketplace, orderId, orderValue) VALUES (?, ?, ?, ?, 0)",
+                [orderDate, reason, "MEESHO", subOrderNo, 0]
+              );
+              orderId = orderResult.insertId;
+              orderMap.set(subOrderNo, orderId);
+            }
+
             await db.query(
               "INSERT INTO order_items (order_id, sku_id, quantity) VALUES (?, ?, ?)",
               [orderId, childSkuId, deductQtyChild]
@@ -1063,7 +1654,9 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
             res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
             updatePerformed = true;
           }
-        } else {
+        } 
+        // -------- COMBO SKU LOGIC END --------
+        else {
           // Normal SKU FIFO deduction
           const normalSku = normalSkuMap[skuCode.toLowerCase()];
           if (normalSku) {
@@ -1075,12 +1668,9 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
               [skuId]
             );
 
-            if (invRows.length === 0) {
-              const [insertInv] = await db.query(
-                "INSERT INTO inventory (skuId, quantity, inventoryUpdatedAt) VALUES (?, 0, NOW())",
-                [skuId]
-              );
-              invRows = [{ id: insertInv.insertId, quantity: 0 }];
+            if (!invRows.length) {
+              res.write(`data: ${JSON.stringify({ uploadedSku: originalSku, skipped: true, reason: "Inventory 0" })}\n\n`);
+              continue;
             }
 
             let remainingToDeduct = deductQtyTotal;
@@ -1088,15 +1678,9 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
 
             for (const slot of invRows) {
               if (remainingToDeduct <= 0) break;
-
               const deductFromThis = Math.min(slot.quantity, remainingToDeduct);
               const newQty = slot.quantity - deductFromThis;
-
-              await db.query(
-                "UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?",
-                [newQty, slot.id]
-              );
-
+              await db.query("UPDATE inventory SET quantity = ?, inventoryUpdatedAt = NOW() WHERE id = ?", [newQty, slot.id]);
               remainingToDeduct -= deductFromThis;
             }
 
@@ -1106,13 +1690,17 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
             );
             const newTotalQty = updatedRows[0].totalQty || 0;
 
-            const orderDate = new Date();
-            const generatedOrderId = uuidv4();
-            const [orderResult] = await db.query(
-              "INSERT INTO orders (orderDateTime, orderStatus, marketplace, orderId) VALUES (?, ?, ?, ?)",
-              [orderDate, reason, "MEESHO", generatedOrderId]
-            );
-            const orderId = orderResult.insertId;
+            let orderId = orderMap.get(subOrderNo);
+            if (!orderId) {
+              const orderDate = new Date();
+              const [orderResult] = await db.query(
+                "INSERT INTO orders (orderDateTime, orderStatus, marketplace, orderId, orderValue) VALUES (?, ?, ?, ?, 0)",
+                [orderDate, reason, "MEESHO", subOrderNo, 0]
+              );
+              orderId = orderResult.insertId;
+              orderMap.set(subOrderNo, orderId);
+            }
+
             await db.query(
               "INSERT INTO order_items (order_id, sku_id, quantity) VALUES (?, ?, ?)",
               [orderId, skuId, deductQtyTotal]
@@ -1132,7 +1720,6 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
           } else {
             resultObj = { uploadedSku: originalSku, error: "SKU not found (normal or combo)", reason };
             res.write(`data: ${JSON.stringify(resultObj)}\n\n`);
-            log(`Row ${i + 1}: Failed to process SKU ${originalSku}`);
           }
         }
 
@@ -1143,6 +1730,7 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
 
         const progressPercent = Math.round(((i + 1) / totalRows) * 100);
         res.write(`data: ${JSON.stringify({ progressPercent })}\n\n`);
+
       } catch (error) {
         const row = allowedSheet[i] || {};
         const originalSku = row["SKU"];
@@ -1159,24 +1747,124 @@ app.post("/meesho-sse", upload.single("file"), async (req, res) => {
     clearInterval(heartbeat);
     res.write(`data: ${JSON.stringify({ done: true, executionTime: Date.now() - startTime })}\n\n`);
     res.end();
+
   } catch (err) {
     log(`Critical error in /meesho-sse: ${err.message}`);
     clearInterval(heartbeat);
     res.write(`data: ${JSON.stringify({ error: "Something went wrong" })}\n\n`);
     res.end();
   }
+
+  function sendProgress(message) {
+    log(message);
+    res.write(`data: ${JSON.stringify({ message })}\n\n`);
+  }
 });
 
 
+// New endpoint to fetch sales for the last 15 days - Phase 1
+// app.get('/sales-last-15-days', async (req, res) => {
+//   const { vendorCode } = req.query; // Get vendorCode from query params
 
+//   try {
+//     let query = `
+//       SELECT s.skuCode, COALESCE(SUM(oi.quantity), 0) AS salesLast15Days
+//       FROM orders o
+//       LEFT JOIN order_items oi ON o.id = oi.order_id
+//       LEFT JOIN sku s ON oi.sku_id = s.id
+//       WHERE o.orderDateTime >= DATE_SUB(NOW(), INTERVAL 15 DAY)
+//       AND o.orderStatus IN ('SHIPPED', 'DELIVERED', 'READY_TO_SHIP', 'DOOR_STEP_EXCHANGED')
+//     `;
 
-// New endpoint to fetch sales for the last 15 days
+//     const params = [];
+//     if (vendorCode) {
+//       query += ' AND s.vendorId = ?'; // Filter by vendorId from sku table
+//       params.push(vendorCode);
+//     }
+
+//     query += ' GROUP BY s.skuCode';
+
+//     const [rows] = await db.query(query, params);
+
+//     res.json({
+//       success: true,
+//       data: rows.map(row => ({
+//         skuCode: row.skuCode,
+//         salesLast15Days: row.salesLast15Days
+//       }))
+//     });
+//   } catch (error) {
+//     console.error('Error fetching sales last 15 days:', error);
+//     res.status(500).json({
+//       success: false,
+//       error: 'Failed to fetch sales data'
+//     });
+//   }
+// });
+
+// New endpoint to fetch sales for the last 15 days - Phase 2
+// app.get('/sales-last-15-days', async (req, res) => {
+//   const { vendorCode } = req.query;
+
+//   try {
+//     let query = `
+//       SELECT s.skuCode, COUNT(DISTINCT o.orderId) AS salesLast15Days
+//       FROM orders o
+//       LEFT JOIN order_items oi ON o.id = oi.order_id
+//       LEFT JOIN sku s ON oi.sku_id = s.id
+//       WHERE o.orderDateTime >= DATE_SUB(NOW(), INTERVAL 15 DAY)
+//       AND o.orderStatus IN ('SHIPPED', 'DELIVERED', 'READY_TO_SHIP', 'DOOR_STEP_EXCHANGED')
+//     `;
+
+//     const params = [];
+//     if (vendorCode) {
+//       query += ' AND s.vendorId = ?';
+//       params.push(vendorCode);
+//     }
+
+//     query += ' GROUP BY s.skuCode';
+
+//     const [rows] = await db.query(query, params);
+
+//     res.json({
+//       success: true,
+//       data: rows.map(row => ({
+//         skuCode: row.skuCode,
+//         salesLast15Days: row.salesLast15Days || 0
+//       }))
+//     });
+//   } catch (error) {
+//     console.error('Error fetching sales last 15 days:', error);
+//     res.status(500).json({
+//       success: false,
+//       error: 'Failed to fetch sales data'
+//     });
+//   }
+// });
+
+// New endpoint to fetch sales for the last 15 days - Phase 3
 app.get('/sales-last-15-days', async (req, res) => {
-  const { vendorCode } = req.query; // Get vendorCode from query params
+  const { vendorCode } = req.query;
 
   try {
+
+    // Fetch all combo child SKUs
+    const [comboChildRows] = await db.query(`
+      SELECT csi.sku_id, cs.combo_name
+      FROM combo_sku cs
+      JOIN combo_sku_items csi ON cs.id = csi.combo_sku_id
+    `);
+
+    // Map combo SKU -> child SKUs
+    const comboMap = {};
+    comboChildRows.forEach(row => {
+      if (!comboMap[row.combo_name.toLowerCase()]) comboMap[row.combo_name.toLowerCase()] = [];
+      comboMap[row.combo_name.toLowerCase()].push(row.sku_id);
+    });
+
+    // Main query: count distinct orderIds per SKU
     let query = `
-      SELECT s.skuCode, COALESCE(SUM(oi.quantity), 0) AS salesLast15Days
+      SELECT s.skuCode, COUNT(DISTINCT o.orderId) AS salesLast15Days
       FROM orders o
       LEFT JOIN order_items oi ON o.id = oi.order_id
       LEFT JOIN sku s ON oi.sku_id = s.id
@@ -1186,7 +1874,7 @@ app.get('/sales-last-15-days', async (req, res) => {
 
     const params = [];
     if (vendorCode) {
-      query += ' AND s.vendorId = ?'; // Filter by vendorId from sku table
+      query += ' AND s.vendorId = ?';
       params.push(vendorCode);
     }
 
@@ -1194,13 +1882,28 @@ app.get('/sales-last-15-days', async (req, res) => {
 
     const [rows] = await db.query(query, params);
 
+    // Build final result with zero sales for SKUs not sold
+    const resultMap = {};
+    rows.forEach(row => {
+      resultMap[row.skuCode] = row.salesLast15Days || 0;
+    });
+
+    // Include combo child SKUs counts
+    for (const comboName in comboMap) {
+      comboMap[comboName].forEach(childSkuId => {
+        const childSkuRow = rows.find(r => r.skuCode === childSkuId);
+        if (!childSkuRow) resultMap[childSkuId] = 0;
+      });
+    }    
+
     res.json({
       success: true,
-      data: rows.map(row => ({
-        skuCode: row.skuCode,
-        salesLast15Days: row.salesLast15Days
+      data: Object.keys(resultMap).map(skuCode => ({
+        skuCode,
+        salesLast15Days: resultMap[skuCode]
       }))
     });
+
   } catch (error) {
     console.error('Error fetching sales last 15 days:', error);
     res.status(500).json({
